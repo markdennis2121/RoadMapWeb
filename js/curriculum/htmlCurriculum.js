@@ -825,7 +825,7 @@ export const HTML_CURRICULUM = {
   <meta property="og:image" content="https://mysite.com/social-image.jpg">
 </head>`,
       breakdown: [
-        { part: '<title>...', meaning: 'Specifies the primary headline indexed by search engines and displayed on the browser tab.' },
+        { part: '<title>Descriptive page title</title>', meaning: 'Sets the page title shown in the browser tab and used as the main headline in search results.' },
         { part: 'name="description"', meaning: 'Provides the search engine snippet summarizing the page content.' },
         { part: 'property="og:image"', meaning: 'Direct URL to a 1200x630px graphic used when sharing the link on Slack, Discord, or LinkedIn.' }
       ],

@@ -212,7 +212,7 @@ showToast("Profile settings saved!", "success");`,
       ],
       codingChallenge: {
         prompt: 'Build a dynamic counter app where clicking "+" increments a count heading and changes text color to green when count > 0.',
-        hint: 'Use btn.addEventListener("click", () => { ... }) and countElem.textContent.'
+        hint: 'Add a click listener to the button, increase the count variable inside the callback, and update countElem.textContent with the new value.'
       },
       miniProjectIdea: {
         title: 'Interactive To-Do List Application',
@@ -335,7 +335,7 @@ parentContainer.addEventListener("click", (event) => {
   }
 });`,
       breakdown: [
-        { part: 'addEventListener("click", (e) => ...)', meaning: 'Subscribes callback to click event dispatch.' },
+        { part: 'addEventListener("click", (event) => { console.log(event.type); })', meaning: 'Registers a callback that runs whenever the element is clicked.' },
         { part: 'e.preventDefault()', meaning: 'Prevents default browser action (e.g. page reload on form submit).' },
         { part: 'e.target.closest(selector)', meaning: 'Finds the nearest matching ancestor matching the target.' }
       ],
@@ -463,7 +463,7 @@ table.addEventListener("click", (e) => {
       ],
       codingChallenge: {
         prompt: 'Implement a star rating component where hovering over any star highlights all previous stars using event delegation.',
-        hint: 'Use `parent.addEventListener("mouseover", (e) => ...)` and check `dataset.starIndex`.'
+        hint: 'Listen for `mouseover` on the parent, find the nearest star with `event.target.closest("[data-star-index]")`, and read its `dataset.starIndex`.'
       },
       miniProjectIdea: {
         title: 'Kanban Task Board with Drag & Click Delegation',
@@ -683,7 +683,11 @@ regForm.addEventListener("submit", async (e) => {
         title: 'Intercept Form Submit Event',
         instruction: 'Attach `form.addEventListener("submit", handler)` and immediately call `e.preventDefault()`.',
         whyNecessary: 'Prevents page reload and enables asynchronous handling.',
-        codeSnippet: `form.addEventListener('submit', (e) => { e.preventDefault(); ... });`
+        codeSnippet: `form.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const payload = Object.fromEntries(new FormData(form));
+  console.log(payload);
+});`
       },
       {
         step: 3,
@@ -835,8 +839,12 @@ console.log("Swapped: a =", a, ", b =", b);`,
     ],
     syntaxStructure: {
       generalStructure: `// ES Module Export
-export const helper = () => { ... };
-export default class App { ... }
+export const helper = (value) => value.trim();
+export default class App {
+  render() {
+    return 'Application ready';
+  }
+}
 
 // ES Module Import
 import App, { helper } from './app.js';
@@ -1437,7 +1445,10 @@ fetchWithRetry(() => fetch("https://jsonplaceholder.typicode.com/todos/1").then(
         title: 'Add `async` to the Enclosing Function',
         instruction: 'Prefix your function with `async`.',
         whyNecessary: 'Allows the use of `await` inside the function body.',
-        codeSnippet: `async function fetchData() { ... }`
+        codeSnippet: `async function fetchData() {
+  const response = await fetch('/api/data');
+  return response.json();
+}`
       },
       {
         step: 2,
@@ -1470,7 +1481,7 @@ fetchWithRetry(() => fetch("https://jsonplaceholder.typicode.com/todos/1").then(
     commonMistakes: [
       {
         mistake: 'Using `await` sequentially inside a `for` loop when tasks are independent, creating slow request waterfalls.',
-        howToAvoid: 'Use `await Promise.all(items.map(async item => ...))` for parallel processing.',
+        howToAvoid: 'Use `Promise.all` with `items.map` to start independent async operations together, for example `await Promise.all(items.map(item => saveItem(item)))`.',
         debuggingTip: 'Check the Network tab waterfall to see if requests are running in parallel or serial.'
       },
       {
@@ -1688,7 +1699,12 @@ console.log("Clone views:", modernClone.stats.views);   // 200`,
         title: 'Parse Received Data with `try/catch`',
         instruction: 'Always enclose `JSON.parse(text)` in a `try/catch` block.',
         whyNecessary: 'Malformed JSON throws a fatal `SyntaxError` if not caught.',
-        codeSnippet: `try { const data = JSON.parse(text); } catch (e) { ... }`
+        codeSnippet: `try {
+  const data = JSON.parse(text);
+  console.log(data);
+} catch (error) {
+  console.error('The response was not valid JSON:', error.message);
+}`
       },
       {
         step: 3,

@@ -430,7 +430,22 @@ function ItemList({ items }) {
         title: 'Pass Callback Handlers for State Mutations',
         instruction: 'Pass state updater functions as callback props (e.g. `onSelect={setActiveTab}`).',
         whyNecessary: 'Allows children to trigger state changes in the parent cleanly without mutating props.',
-        codeSnippet: `function TabBar({ activeTab, onSelect }) { ... }`
+        codeSnippet: `function TabBar({ activeTab, onSelect }) {
+  const tabs = ['Overview', 'Details', 'Reviews'];
+  return (
+    <div className="tab-bar">
+      {tabs.map(tab => (
+        <button
+          key={tab}
+          onClick={() => onSelect(tab)}
+          className={activeTab === tab ? 'active' : ''}
+        >
+          {tab}
+        </button>
+      ))}
+    </div>
+  );
+}`
       }
     ],
     bestPractices: {
@@ -574,7 +589,7 @@ simulateReactComponent();`,
           { term: 'No Dependency Array (`useEffect(fn)`)', definition: 'Runs after EVERY single render (rarely desired).' },
           { term: 'Empty Dependency Array (`useEffect(fn, [])`)', definition: 'Runs ONCE on initial mount (equivalent to `componentDidMount`).' },
           { term: 'With Dependencies (`useEffect(fn, [id, query])`)', definition: 'Runs on mount AND whenever any value in the dependency array changes.' },
-          { term: 'Cleanup Function (`return () => {...}`)', definition: 'Runs before the effect re-executes and when the component unmounts to prevent memory leaks (e.g. `clearInterval`).' }
+          { term: 'Cleanup Function (`return () => clearInterval(timer)`)', definition: 'Runs before the effect re-executes and when the component unmounts to prevent memory leaks (for example, by clearing an interval).' }
         ],
         relationship: 'Always list every variable, prop, or state used inside `useEffect` in its dependency array.'
       }

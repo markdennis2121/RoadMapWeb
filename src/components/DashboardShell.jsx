@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { TopicTree } from './TopicTree.jsx';
 import { TopicStudyView } from './TopicStudyView.jsx';
 import { getLearningContent } from '../../js/learning.js';
+import { getCategoryDeviconMeta, getTopicDeviconMeta } from '../lib/devicons.js';
 
 function ProgressRing({ value }) {
   return (
@@ -181,6 +182,20 @@ export function DashboardShell({
           ? 33
           : 0;
 
+  // Profile dropdown state
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = { current: null };
+
+  useEffect(() => {
+    const close = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, []);
+
   const handleSelectTopic = (topic) => {
     setActiveTopicId(topic.id);
     setSection('study');
@@ -205,19 +220,26 @@ export function DashboardShell({
     setMobileSidebarOpen(false);
   };
 
-  const TopicCard = ({ category }) => (
+  const TopicCard = ({ category }) => {
+    const categoryIcon = getCategoryDeviconMeta(category.id);
+    return (
     <article className="category-panel">
       <div className="category-title">
-        <div>
+        <div className="category-title-content">
+          <img src={categoryIcon.iconUrl} alt="" className="category-devicon" />
+          <div>
           <h3>{category.name}</h3>
           <span>{category.topics.length} learning units</span>
+          </div>
         </div>
         <span className="category-arrow" aria-hidden="true">
           ↗
         </span>
       </div>
       <div className="topic-stack">
-        {category.topics.map((topic) => (
+        {category.topics.map((topic) => {
+          const topicIcon = getTopicDeviconMeta(topic.id);
+          return (
           <div className="topic-row" key={topic.id}>
             <button
               onClick={() => handleSelectTopic(topic)}
@@ -229,6 +251,7 @@ export function DashboardShell({
                 label={`Mark ${topic.title} complete`}
                 onChange={(checked) => update(topic.id, checked ? 'Completed' : 'Not Started')}
               />
+              {topicIcon && <img src={topicIcon.iconUrl} alt="" className="topic-devicon" />}
               <span>
                 <strong>{topic.title}</strong>
                 <small>{topicProgress(topic)}% learning path</small>
@@ -236,10 +259,12 @@ export function DashboardShell({
             </button>
             <StatusSelect item={topic} onChange={(status) => update(topic.id, status)} />
           </div>
-        ))}
+          );
+        })}
       </div>
     </article>
-  );
+    );
+  };
 
   return (
     <div className="workspace-shell">
@@ -382,16 +407,57 @@ export function DashboardShell({
           </div>
 
           <div className="header-actions">
-            <button onClick={onProfile} className="profile-trigger" aria-label="Open profile">
-              <span className="avatar">
-                {avatar ? <img src={avatar} alt="" /> : displayName[0].toUpperCase()}
-              </span>
-              <span className="profile-name">{displayName}</span>
-              <span aria-hidden="true"></span>
-            </button>
-            <button onClick={onSignOut} className="signout-action">
-              Log out
-            </button>
+            {/* Profile Dropdown */}
+            <div className="profile-dropdown-wrapper" ref={el => profileRef.current = el}>
+              <button
+                onClick={() => setProfileOpen(o => !o)}
+                className="profile-trigger"
+                aria-label="Open profile menu"
+                aria-expanded={profileOpen}
+              >
+                <span className="avatar">
+                  {avatar ? <img src={avatar} alt="" /> : displayName[0].toUpperCase()}
+                </span>
+                <span className="profile-name">{displayName}</span>
+                <svg
+                  className="profile-chevron"
+                  width="14" height="14" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" strokeWidth="2.5"
+                  strokeLinecap="round" strokeLinejoin="round"
+                  style={{ transform: profileOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }}
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+
+              {profileOpen && (
+                <div className="profile-dropdown-menu">
+                  <div className="profile-dropdown-header">
+                    <span className="avatar" style={{ width: 36, height: 36, fontSize: 15 }}>
+                      {avatar ? <img src={avatar} alt="" /> : displayName[0].toUpperCase()}
+                    </span>
+                    <div>
+                      <strong>{displayName}</strong>
+                      <span>{session.user.email}</span>
+                    </div>
+                  </div>
+                  <div className="profile-dropdown-divider" />
+                  <button className="profile-dropdown-item" onClick={() => { onProfile(); setProfileOpen(false); }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    Profile
+                  </button>
+                  <button className="profile-dropdown-item" onClick={() => setProfileOpen(false)}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+                    Settings
+                  </button>
+                  <div className="profile-dropdown-divider" />
+                  <button className="profile-dropdown-item danger" onClick={() => { onSignOut(); setProfileOpen(false); }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    Log out
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 

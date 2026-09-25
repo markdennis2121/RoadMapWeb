@@ -568,7 +568,7 @@ app.listen(PORT, () => {
 });`,
       breakdown: [
         { part: 'app.use(express.json())', meaning: 'Enables JSON body parsing globally for all routes.' },
-        { part: 'app.get("/path", (req, res) => ...)', meaning: 'Registers GET route handler.' },
+        { part: 'app.get("/path", (req, res) => res.json({ status: "ok" }))', meaning: 'Registers a GET route handler that returns a JSON response.' },
         { part: 'res.status(200).json(data)', meaning: 'Sets HTTP status code and transmits JSON response.' }
       ],
       conventions: [

@@ -1,79 +1,5 @@
 import { useState, useMemo } from 'react';
-
-// Official Devicon Tech Badge Metadata with Brand Colors
-const DEVICON_META = {
-  html: {
-    label: 'HTML5 Fundamentals',
-    iconUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/html5/html5-original.svg',
-    lessons: '12 Topics',
-    color: '#e34f26',
-    bgColor: 'rgba(227, 79, 38, 0.08)'
-  },
-  css: {
-    label: 'CSS3 & Layouts',
-    iconUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/css3/css3-original.svg',
-    lessons: '18 Topics',
-    color: '#1572b6',
-    bgColor: 'rgba(21, 114, 182, 0.08)'
-  },
-  js: {
-    label: 'JavaScript',
-    iconUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/javascript/javascript-original.svg',
-    lessons: '32 Topics',
-    color: '#f7df1e',
-    bgColor: 'rgba(247, 223, 30, 0.12)'
-  },
-  javascript: {
-    label: 'JavaScript',
-    iconUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/javascript/javascript-original.svg',
-    lessons: '32 Topics',
-    color: '#f7df1e',
-    bgColor: 'rgba(247, 223, 30, 0.12)'
-  },
-  git: {
-    label: 'Git & GitHub',
-    iconUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/git/git-original.svg',
-    lessons: '10 Topics',
-    color: '#f05032',
-    bgColor: 'rgba(240, 80, 50, 0.08)'
-  },
-  node: {
-    label: 'Node.js & Backend',
-    iconUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nodejs/nodejs-original.svg',
-    lessons: '25 Topics',
-    color: '#539e43',
-    bgColor: 'rgba(83, 158, 67, 0.08)'
-  },
-  react: {
-    label: 'React Framework',
-    iconUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/react/react-original.svg',
-    lessons: '40 Topics',
-    color: '#61dafb',
-    bgColor: 'rgba(97, 218, 251, 0.12)'
-  },
-  projects: {
-    label: 'Practical Projects',
-    iconUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/vscode/vscode-original.svg',
-    lessons: '6 Apps',
-    color: '#8b5cf6',
-    bgColor: 'rgba(139, 92, 246, 0.08)'
-  },
-  default: {
-    label: 'Curriculum',
-    iconUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/javascript/javascript-original.svg',
-    lessons: 'Topics',
-    color: '#4f46e5',
-    bgColor: 'rgba(79, 70, 229, 0.08)'
-  }
-};
-
-function getDeviconMeta(id) {
-  const key = (id || '').toLowerCase();
-  for (const prefix of Object.keys(DEVICON_META)) {
-    if (key.includes(prefix)) return DEVICON_META[prefix];
-  }
-  return DEVICON_META.default;
-}
+import { getCategoryDeviconMeta, getTopicDeviconMeta } from '../lib/devicons.js';
 
 export function TopicTree({
   categories = [],
@@ -119,7 +45,7 @@ export function TopicTree({
     const query = treeSearch.trim().toLowerCase();
 
     return categories.map((cat) => {
-      const meta = getDeviconMeta(cat.id);
+      const meta = getCategoryDeviconMeta(cat.id);
       const filteredTopics = cat.topics.filter((topic) => {
         const matchesQuery =
           !query || topic.title.toLowerCase().includes(query) || cat.name.toLowerCase().includes(query);
@@ -292,6 +218,7 @@ export function TopicTree({
                         const isActive = activeTopicId === topic.id;
                         const isCompleted = topic.status === 'Completed';
                         const isLearning = topic.status === 'Currently Learning';
+                        const topicMeta = getTopicDeviconMeta(topic.id);
 
                         return (
                           <button
@@ -310,6 +237,13 @@ export function TopicTree({
                                 <span className="topic-neutral-dot" />
                               )}
                             </span>
+                            {topicMeta && (
+                              <img
+                                src={topicMeta.iconUrl}
+                                alt=""
+                                className="sidebar-topic-devicon"
+                              />
+                            )}
                             <span className="sidebar-topic-label">{topic.title}</span>
                           </button>
                         );

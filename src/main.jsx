@@ -249,9 +249,9 @@ async function loadRoadmap(userId) {
     .order('created_at');
 
   if (error) throw error;
-  if (data.length) return toRoadmap(data);
-
-  const rows = DEFAULT_DATA.categories
+  const existingRows = data || [];
+  const existingByKey = new Map(existingRows.map((row) => [row.item_key, row]));
+  const defaultRows = DEFAULT_DATA.categories
     .flatMap((category) =>
       category.topics.map((topic) => ({
         user_id: userId,
@@ -260,7 +260,8 @@ async function loadRoadmap(userId) {
         category_id: category.id,
         category_name: category.name,
         title: topic.title,
-        status: topic.status
+        status: topic.status,
+        completed_date: null
       }))
     )
     .concat(
@@ -274,13 +275,36 @@ async function loadRoadmap(userId) {
       }))
     );
 
+  // Seed new lessons for existing accounts and regroup the original lessons into paths.
+  // Keep each learner's status, completion date, and any customized title intact.
+  const rowsToSeed = defaultRows.flatMap((row) => {
+    const existing = existingByKey.get(row.item_key);
+    if (!existing) return [row];
+
+    const needsPathMove = row.item_type === 'topic' && (
+      existing.category_id !== row.category_id || existing.category_name !== row.category_name
+    );
+    if (!needsPathMove) return [];
+
+    return [{
+      ...row,
+      title: existing.title,
+      status: existing.status,
+      completed_date: existing.completed_date
+    }];
+  });
+
+  if (!rowsToSeed.length) return toRoadmap(existingRows);
+
   const { data: seeded, error: seedError } = await supabase
     .from('roadmap_items')
-    .insert(rows)
+    .upsert(rowsToSeed, { onConflict: 'user_id,item_key' })
     .select('item_key,item_type,category_id,category_name,title,status,completed_date');
 
   if (seedError) throw seedError;
-  return toRoadmap(seeded);
+  const mergedRows = new Map(existingRows.map((row) => [row.item_key, row]));
+  (seeded || []).forEach((row) => mergedRows.set(row.item_key, row));
+  return toRoadmap([...mergedRows.values()]);
 }
 
 function toRoadmap(rows) {
@@ -299,6 +323,12 @@ function toRoadmap(rows) {
       category.topics.push({ id: row.item_key, title: row.title, status: row.status });
     }
   });
+
+  const categoryOrder = new Map(DEFAULT_DATA.categories.map((category, index) => [category.id, index]));
+  categories.sort((left, right) =>
+    (categoryOrder.get(left.id) ?? Number.MAX_SAFE_INTEGER) -
+    (categoryOrder.get(right.id) ?? Number.MAX_SAFE_INTEGER)
+  );
 
   return { categories, projects };
 }

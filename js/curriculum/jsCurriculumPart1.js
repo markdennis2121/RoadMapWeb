@@ -580,7 +580,10 @@ console.log(renderUserLocation({ data: { company: null } })); // Coordinates: (0
         title: 'Replace Loose Equality with Strict Equality',
         instruction: 'Search your codebase for == and replace with ===.',
         whyNecessary: 'Eliminates unexpected type coercion security vulnerabilities and logic bugs.',
-        codeSnippet: `if (inputStatus === 'completed') { ... }`
+        codeSnippet: `const inputStatus = 'completed';
+if (inputStatus === 'completed') {
+  console.log('The task is complete.');
+}`
       },
       {
         step: 2,
@@ -858,7 +861,14 @@ console.log(handleApiResponse(401));`,
         title: 'Use switch for Enum/Constant Matching',
         instruction: 'When branching on a single known variable with 4+ discrete values, use switch.',
         whyNecessary: 'More readable and maintainable than long chains of else if.',
-        codeSnippet: `switch (action.type) { case 'ADD': ... }`
+        codeSnippet: `const action = { type: 'ADD', item: 'Read a lesson' };
+switch (action.type) {
+  case 'ADD':
+    console.log('Add item:', action.item);
+    break;
+  default:
+    console.log('Unknown action.');
+}`
       }
     ],
     bestPractices: {
@@ -1004,13 +1014,20 @@ for (const key in user) {
     ],
     syntaxStructure: {
       generalStructure: `// 1. Classic For
-for (let i = 0; i < array.length; i++) { ... }
+for (let i = 0; i < array.length; i++) {
+  console.log(array[i]);
+}
 
 // 2. Modern for...of (Preferred for Arrays)
-for (const value of array) { ... }
+for (const value of array) {
+  console.log(value);
+}
 
 // 3. While Loop
-while (condition) { ... }`,
+let count = array.length;
+while (count > 0) {
+  count -= 1;
+}`,
       breakdown: [
         { part: 'for (let i = 0; i < len; i++)', meaning: 'Initialization; Condition; Increment expression.' },
         { part: 'for (const item of list)', meaning: 'Iterates each item value directly without index management.' }
@@ -1088,7 +1105,10 @@ processBatchUploads(["doc1.pdf", "image.png", "data.csv"]).then(res => {
         title: 'Choose the Right Iteration Method',
         instruction: 'For Arrays -> use for...of or .forEach(). For Object keys -> use for...in or Object.entries(). For counters -> use for (let i = 0; ...).',
         whyNecessary: 'Ensures readable, bug-free traversal.',
-        codeSnippet: `for (const item of items) { ... }`
+        codeSnippet: `const items = ['HTML', 'CSS', 'JavaScript'];
+for (const item of items) {
+  console.log(item);
+}`
       },
       {
         step: 2,
@@ -1499,8 +1519,8 @@ const evens = numbers.filter(num => num % 2 === 0);
 // 3. Reduce: Single accumulated result
 const sum = numbers.reduce((acc, current) => acc + current, 0);`,
       breakdown: [
-        { part: '.map((item, index, array) => ...)', meaning: 'Callback receives current element, index, and source array.' },
-        { part: '.reduce((acc, item) => ..., 0)', meaning: 'Initial accumulator value is 0; returned value becomes next accumulator.' }
+        { part: '.map((item, index, array) => ({ ...item, index }))', meaning: 'The callback receives the current element, its index, and the source array, then returns one transformed value.' },
+        { part: '.reduce((total, item) => total + item.price, 0)', meaning: 'The callback returns the next accumulator value; the initial value here is 0.' }
       ],
       conventions: [
         'Always supply an explicit initial accumulator value to .reduce() (e.g. 0 or {}).',
@@ -1833,7 +1853,10 @@ console.log("Next push:", nextState.notifications.push); // true`,
         title: 'Use Object.keys(), values(), and entries()',
         instruction: 'Traverse objects using modern static reflection methods.',
         whyNecessary: 'Provides clean array interfaces for iterating and converting objects.',
-        codeSnippet: `Object.entries(settings).forEach(([key, val]) => ...);`
+        codeSnippet: `const settings = { theme: 'dark', fontSize: 16 };
+Object.entries(settings).forEach(([key, value]) => {
+  console.log(key, value);
+});`
       }
     ],
     bestPractices: {
@@ -1864,7 +1887,7 @@ console.log("Next push:", nextState.notifications.push); // true`,
     projectApplications: [
       {
         domain: 'React Component Props',
-        description: 'Unpacking props directly in functional components (const Card = ({ title, img, price }) => ...).'
+        description: 'Unpacking props directly in a functional component, such as `function Card({ title, image, price }) { return <article><img src={image} alt="" /><h2>{title}</h2><p>{price}</p></article>; }`.'
       },
       {
         domain: 'API Query Parameter Builders',
