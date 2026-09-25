@@ -22,3 +22,9 @@ button { cursor: pointer; }
 
 .mb-5.grid.grid-cols-3 > button:nth-child(3) { display: none; }
 .mb-5.grid.grid-cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.mb-5.grid.grid-cols-3 > button:nth-child(1),
+.mb-5.grid.grid-cols-3 > button:nth-child(2) { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; }
+.mb-5.grid.grid-cols-3 > button:nth-child(1)::before,
+.mb-5.grid.grid-cols-3 > button:nth-child(2)::before { width: 1.1rem; height: 1.1rem; background-position: center; background-repeat: no-repeat; background-size: contain; content: ''; }
+.mb-5.grid.grid-cols-3 > button:nth-child(1)::before { background-image: url('https://cdn.simpleicons.org/google'); }
+.mb-5.grid.grid-cols-3 > button:nth-child(2)::before { background-image: url('https://cdn.simpleicons.org/github/ffffff'); }
