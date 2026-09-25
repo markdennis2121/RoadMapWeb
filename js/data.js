@@ -1,4 +1,4 @@
-const DEFAULT_DATA = {
+export const DEFAULT_DATA = {
     categories: [
         {
             id: 'html',

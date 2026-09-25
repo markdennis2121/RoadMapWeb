@@ -1,6 +1,8 @@
+import { DEFAULT_DATA } from './data.js';
+
 const STORAGE_KEY = 'roadmap_tracker_data';
 
-const Storage = {
+export const Storage = {
     getData: () => {
         const data = localStorage.getItem(STORAGE_KEY);
         if (data) {
