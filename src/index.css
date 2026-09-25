@@ -19,3 +19,6 @@ button { cursor: pointer; }
   to { opacity: 1; transform: translateY(0); }
 }
 .animate-rise-in { animation: rise-in 500ms ease-out both; }
+
+.mb-5.grid.grid-cols-3 > button:nth-child(3) { display: none; }
+.mb-5.grid.grid-cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
