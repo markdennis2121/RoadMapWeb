@@ -22,12 +22,17 @@ function Check({ checked, onChange, label }) {
   return <label className="relative flex shrink-0 cursor-pointer items-center" title={label}><input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} className="peer sr-only" /><span className="flex h-5 w-5 items-center justify-center rounded-md border-2 border-slate-500 transition peer-checked:border-emerald-400 peer-checked:bg-emerald-500 peer-focus-visible:ring-2 peer-focus-visible:ring-cyan-400"><span className="hidden h-2.5 w-1.5 rotate-45 border-b-2 border-r-2 border-white peer-checked:block" /></span></label>;
 }
 
-function AuthScreen() {
+function LegalPage({ type }) {
+  const privacy = type === 'privacy';
+  return <main className="min-h-screen bg-[#0b1120] px-5 py-10 text-slate-100"><article className="mx-auto max-w-3xl rounded-2xl border border-slate-800 bg-slate-900/80 p-7 shadow-2xl"><a href="/" className="text-sm text-cyan-300">Back to Roadmap Tracker</a><h1 className="mt-8 font-['Space_Grotesk'] text-3xl font-bold">{privacy ? 'Privacy Policy' : 'Terms and Conditions'}</h1><p className="mt-2 text-sm text-slate-400">Last updated: September 25, 2026</p>{privacy ? <div className="mt-8 space-y-6 text-slate-300"><section><h2 className="text-xl font-bold text-slate-100">Information we collect</h2><p className="mt-2">Roadmap Tracker collects your email and authentication details. Social sign-in may provide your name, email, and profile image.</p></section><section><h2 className="text-xl font-bold text-slate-100">How we use information</h2><p className="mt-2">We use this information to authenticate you, save your personal roadmap, provide account recovery, and improve the application.</p></section><section><h2 className="text-xl font-bold text-slate-100">Storage and security</h2><p className="mt-2">Account and roadmap data are stored with Supabase. Row-level security restricts roadmap access to its owner. Passwords are handled by Supabase Authentication.</p></section><section><h2 className="text-xl font-bold text-slate-100">Your choices</h2><p className="mt-2">You can change your password or request account and data deletion by contacting the application owner.</p></section></div> : <div className="mt-8 space-y-6 text-slate-300"><section><h2 className="text-xl font-bold text-slate-100">Using Roadmap Tracker</h2><p className="mt-2">Roadmap Tracker helps you organize personal learning goals. You are responsible for your account credentials and roadmap content.</p></section><section><h2 className="text-xl font-bold text-slate-100">Acceptable use</h2><p className="mt-2">You agree not to misuse the service, access another user’s account, interfere with the service, or use it unlawfully.</p></section><section><h2 className="text-xl font-bold text-slate-100">Availability and changes</h2><p className="mt-2">The service is provided as available. Features and these terms may change over time.</p></section></div>}</article></main>;
+}
+
+function AuthScreen({ initialMessage = '' }) {
   const [mode, setMode] = useState('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState(initialMessage);
   const [busy, setBusy] = useState(false);
   const submit = async (event) => {
     event.preventDefault();
@@ -42,13 +47,13 @@ function AuthScreen() {
   };
   const signInWithProvider = async (provider) => {
     setBusy(true);
-    const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: window.location.origin } });
+    const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: `${window.location.origin}/` } });
     if (error) { setBusy(false); setMessage(error.message); }
   };
   const recover = async () => {
     if (!email) { setMessage('Enter your email first.'); return; }
     setBusy(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/` });
     setBusy(false);
     setMessage(error ? error.message : 'Password reset email sent. Check your inbox.');
   };
@@ -133,9 +138,19 @@ function App({ session }) {
 
 function Root() {
   const [session, setSession] = useState(undefined);
-  useEffect(() => { supabase.auth.getSession().then(({ data }) => setSession(data.session)); const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => setSession(nextSession)); return () => listener.subscription.unsubscribe(); }, []);
+  const [authError, setAuthError] = useState('');
+  useEffect(() => {
+    const callbackError = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('error_description');
+    if (callbackError) { setAuthError(callbackError); window.history.replaceState({}, document.title, window.location.pathname); }
+    supabase.auth.getSession().then(({ data, error }) => { if (error) setAuthError(error.message); setSession(data.session); });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => setSession(nextSession));
+    return () => listener.subscription.unsubscribe();
+  }, []);
+  const path = window.location.pathname.replace(/\/$/, '');
+  if (path === '/privacy') return <LegalPage type="privacy" />;
+  if (path === '/terms') return <LegalPage type="terms" />;
   if (session === undefined) return <div className="flex min-h-screen items-center justify-center bg-[#0b1120] text-cyan-300">Loading...</div>;
-  return session ? <App session={session} /> : <AuthScreen />;
+  return session ? <App session={session} /> : <AuthScreen initialMessage={authError} />;
 }
 
 createRoot(document.getElementById('root')).render(<Root />);
