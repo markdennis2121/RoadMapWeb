@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { DEFAULT_DATA } from '../js/data.js';
+import { getLearningContent } from '../js/learning.js';
+import { LearningModal as InAppLearningModal } from './components/LearningModal.jsx';
 import { supabase } from './lib/supabase.js';
 import './index.css';
 
@@ -25,6 +27,26 @@ function Check({ checked, onChange, label }) {
 function LegalPage({ type }) {
   const privacy = type === 'privacy';
   return <main className="min-h-screen bg-[#0b1120] px-5 py-10 text-slate-100"><article className="mx-auto max-w-3xl rounded-2xl border border-slate-800 bg-slate-900/80 p-7 shadow-2xl"><a href="/" className="text-sm text-cyan-300">Back to Roadmap Tracker</a><h1 className="mt-8 font-['Space_Grotesk'] text-3xl font-bold">{privacy ? 'Privacy Policy' : 'Terms and Conditions'}</h1><p className="mt-2 text-sm text-slate-400">Last updated: September 25, 2026</p>{privacy ? <div className="mt-8 space-y-6 text-slate-300"><section><h2 className="text-xl font-bold text-slate-100">Information we collect</h2><p className="mt-2">Roadmap Tracker collects your email and authentication details. Social sign-in may provide your name, email, and profile image.</p></section><section><h2 className="text-xl font-bold text-slate-100">How we use information</h2><p className="mt-2">We use this information to authenticate you, save your personal roadmap, provide account recovery, and improve the application.</p></section><section><h2 className="text-xl font-bold text-slate-100">Storage and security</h2><p className="mt-2">Account and roadmap data are stored with Supabase. Row-level security restricts roadmap access to its owner. Passwords are handled by Supabase Authentication.</p></section><section><h2 className="text-xl font-bold text-slate-100">Your choices</h2><p className="mt-2">You can change your password or request account and data deletion by contacting the application owner.</p></section></div> : <div className="mt-8 space-y-6 text-slate-300"><section><h2 className="text-xl font-bold text-slate-100">Using Roadmap Tracker</h2><p className="mt-2">Roadmap Tracker helps you organize personal learning goals. You are responsible for your account credentials and roadmap content.</p></section><section><h2 className="text-xl font-bold text-slate-100">Acceptable use</h2><p className="mt-2">You agree not to misuse the service, access another user’s account, interfere with the service, or use it unlawfully.</p></section><section><h2 className="text-xl font-bold text-slate-100">Availability and changes</h2><p className="mt-2">The service is provided as available. Features and these terms may change over time.</p></section></div>}</article></main>;
+}
+
+function LearningModal({ topic, progress, onClose, onSave }) {
+  const content = getLearningContent(topic.id, topic.title);
+  const [exerciseAnswer, setExerciseAnswer] = useState('');
+  const [examAnswer, setExamAnswer] = useState('');
+  const [result, setResult] = useState('');
+  const exerciseComplete = progress?.exercise_complete || false;
+  const examComplete = progress?.exam_complete || false;
+  const checkExercise = () => {
+    const correct = exerciseAnswer === content.exercise.answer;
+    setResult(correct ? 'Exercise correct. Exam unlocked.' : 'Not quite. Review the lesson and try again.');
+    if (correct) onSave({ exercise_complete: true });
+  };
+  const checkExam = () => {
+    const correct = examAnswer === content.exam.answer;
+    setResult(correct ? 'Exam passed. Topic completed.' : 'That answer is not correct yet. Try again.');
+    if (correct) onSave({ exam_complete: true, exam_score: 100 });
+  };
+  return <div className="fixed inset-0 z-20 overflow-y-auto bg-slate-950/80 p-5"><section className="mx-auto my-8 max-w-2xl rounded-2xl border border-slate-800 bg-slate-900 p-6 text-slate-100 shadow-2xl"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-widest text-cyan-400">Learning path</p><h2 className="mt-1 font-['Space_Grotesk'] text-2xl font-bold">{topic.title}</h2></div><button onClick={onClose} className="text-2xl text-slate-400" aria-label="Close">×</button></div><div className="mt-6 space-y-5"><article className="rounded-xl bg-slate-950/70 p-4"><p className="mb-2 text-xs font-bold uppercase text-slate-400">1. Lesson</p><p className="text-slate-300">{content.lesson}</p><a href={content.materialUrl} target="_blank" rel="noreferrer" onClick={() => onSave({ lesson_complete: true })} className="mt-4 inline-block text-sm font-bold text-cyan-300 hover:text-cyan-200">Open learning material →</a></article><article className="rounded-xl bg-slate-950/70 p-4"><p className="mb-2 text-xs font-bold uppercase text-slate-400">2. Exercise {exerciseComplete && <span className="text-emerald-400">Complete</span>}</p><p className="mb-3 text-slate-300">{content.exercise.question}</p><div className="flex flex-wrap gap-2">{content.exercise.options.map((option) => <button key={option} onClick={() => setExerciseAnswer(option)} className={`rounded-lg border px-3 py-2 text-sm ${exerciseAnswer === option ? 'border-cyan-400 bg-cyan-400/10' : 'border-slate-700'}`}>{option}</button>)}</div><button disabled={!exerciseAnswer} onClick={checkExercise} className="mt-4 rounded-lg bg-cyan-500 px-3 py-2 text-sm font-bold text-slate-950 disabled:opacity-40">Check exercise</button></article><article className={`rounded-xl bg-slate-950/70 p-4 ${!exerciseComplete ? 'opacity-60' : ''}`}><p className="mb-2 text-xs font-bold uppercase text-slate-400">3. Exam {examComplete && <span className="text-emerald-400">Passed</span>}</p><p className="mb-3 text-slate-300">{content.exam.question}</p><div className="flex flex-wrap gap-2">{content.exam.options.map((option) => <button key={option} disabled={!exerciseComplete} onClick={() => setExamAnswer(option)} className={`rounded-lg border px-3 py-2 text-sm disabled:cursor-not-allowed ${examAnswer === option ? 'border-cyan-400 bg-cyan-400/10' : 'border-slate-700'}`}>{option}</button>)}</div><button disabled={!exerciseComplete || !examAnswer} onClick={checkExam} className="mt-4 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-bold text-slate-950 disabled:opacity-40">Submit exam</button></article></div>{result && <p className="mt-5 rounded-xl bg-slate-950 p-3 text-sm text-cyan-300">{result}</p>}</section></div>;
 }
 
 function AuthScreen({ initialMessage = '' }) {
@@ -61,11 +83,11 @@ function AuthScreen({ initialMessage = '' }) {
 }
 
 async function loadRoadmap(userId) {
-  const { data, error } = await supabase.from('roadmap_items').select('*').eq('user_id', userId).order('created_at');
+  const { data, error } = await supabase.from('roadmap_items').select('item_key,item_type,category_id,category_name,title,status,completed_date').eq('user_id', userId).order('created_at');
   if (error) throw error;
   if (data.length) return toRoadmap(data);
   const rows = DEFAULT_DATA.categories.flatMap((category) => category.topics.map((topic) => ({ user_id: userId, item_key: topic.id, item_type: 'topic', category_id: category.id, category_name: category.name, title: topic.title, status: topic.status }))).concat(DEFAULT_DATA.projects.map((project) => ({ user_id: userId, item_key: project.id, item_type: 'project', title: project.title, status: project.status, completed_date: project.completedDate })));
-  const { data: seeded, error: seedError } = await supabase.from('roadmap_items').insert(rows).select('*');
+  const { data: seeded, error: seedError } = await supabase.from('roadmap_items').insert(rows).select('item_key,item_type,category_id,category_name,title,status,completed_date');
   if (seedError) throw seedError;
   return toRoadmap(seeded);
 }
@@ -99,6 +121,8 @@ function ProfileModal({ session, onClose }) {
 
 function App({ session }) {
   const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [learningProgress, setLearningProgress] = useState({});
   const [message, setMessage] = useState('');
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
@@ -106,10 +130,11 @@ function App({ session }) {
   const [itemType, setItemType] = useState('topic');
   const [newTitle, setNewTitle] = useState('');
   const [categoryId, setCategoryId] = useState('');
-  useEffect(() => { loadRoadmap(session.user.id).then((roadmap) => { setData(roadmap); setCategoryId(roadmap.categories[0]?.id || ''); }).catch((error) => setMessage(error.message)); }, [session.user.id]);
+  useEffect(() => { let active = true; setLoading(true); Promise.all([loadRoadmap(session.user.id), supabase.from('learning_progress').select('item_key,lesson_complete,exercise_complete,exam_complete,exam_score').eq('user_id', session.user.id)]).then(([roadmap, result]) => { if (!active) return; if (result.error) throw result.error; setData(roadmap); setCategoryId(roadmap.categories[0]?.id || ''); setLearningProgress(Object.fromEntries(result.data.map((entry) => [entry.item_key, entry]))); }).catch((error) => { if (active) setMessage(error.message); }).finally(() => { if (active) setLoading(false); }); return () => { active = false; }; }, [session.user.id]);
   const refresh = async () => setData(await loadRoadmap(session.user.id));
+  const saveLearningProgress = async (itemKey, changes) => { const { data: saved, error } = await supabase.from('learning_progress').upsert({ user_id: session.user.id, item_key: itemKey, ...learningProgress[itemKey], ...changes, updated_at: new Date().toISOString() }, { onConflict: 'user_id,item_key' }).select().single(); if (error) setMessage(error.message); else setLearningProgress((current) => ({ ...current, [itemKey]: saved })); };
   const update = async (id, status, completedDate = null) => { const { error } = await supabase.from('roadmap_items').update({ status, completed_date: completedDate }).eq('user_id', session.user.id).eq('item_key', id); if (error) setMessage(error.message); else refresh(); };
-  const stats = useMemo(() => { if (!data) return { total: 0, completed: 0, learning: 0, progress: 0 }; const items = [...data.categories.flatMap((category) => category.topics), ...data.projects]; const completed = items.filter((item) => item.status === 'Completed').length; return { total: items.length, completed, learning: items.filter((item) => item.status === 'Currently Learning').length, progress: items.length ? Math.round((completed / items.length) * 100) : 0 }; }, [data]);
+  const stats = useMemo(() => { if (!data) return { total: 0, completed: 0, learning: 0, progress: 0, learningProgress: 0 }; const items = [...data.categories.flatMap((category) => category.topics), ...data.projects]; const completed = items.filter((item) => item.status === 'Completed').length; const topics = data.categories.flatMap((category) => category.topics); const learningDone = topics.filter((topic) => learningProgress[topic.id]?.exam_complete).length; return { total: items.length, completed, learning: items.filter((item) => item.status === 'Currently Learning').length, progress: items.length ? Math.round((completed / items.length) * 100) : 0, learningProgress: topics.length ? Math.round((learningDone / topics.length) * 100) : 0 }; }, [data, learningProgress]);
   useEffect(() => {
     const logoutButton = [...document.querySelectorAll('button')].find((button) => button.textContent === 'Log out');
     if (!logoutButton || logoutButton.dataset.profileReady) return undefined;
@@ -128,7 +153,33 @@ function App({ session }) {
     profileContainer.appendChild(profileButton);
     return () => profileContainer.remove();
   }, [session]);
-  if (!data) return <div className="flex min-h-screen items-center justify-center bg-[#0b1120] text-cyan-300">Loading your roadmap...</div>;
+  useEffect(() => {
+    if (!data) return undefined;
+    const topics = data.categories.flatMap((category) => category.topics);
+    const handlers = [];
+    document.querySelectorAll('span').forEach((element) => {
+      const topic = topics.find((entry) => entry.title === element.textContent);
+      if (!topic) return;
+      const handler = () => setModal(`learning:${topic.id}`);
+      element.addEventListener('click', handler);
+      element.classList.add('cursor-pointer');
+      handlers.push(() => element.removeEventListener('click', handler));
+    });
+    return () => handlers.forEach((remove) => remove());
+  }, [data]);
+  useEffect(() => {
+    if (!modal?.startsWith('learning:') || !data) return undefined;
+    const topicId = modal.slice('learning:'.length);
+    const topic = data.categories.flatMap((category) => category.topics).find((entry) => entry.id === topicId);
+    if (!topic) return undefined;
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    root.render(<InAppLearningModal topic={topic} progress={learningProgress[topic.id]} onClose={() => { root.unmount(); container.remove(); setModal(null); }} onSave={(changes) => saveLearningProgress(topic.id, changes)} />);
+    return () => { root.unmount(); container.remove(); };
+  }, [modal, data, learningProgress]);
+  if (loading) return <div className="flex min-h-screen items-center justify-center bg-[#0b1120] px-5 text-cyan-300"><div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900/80 p-6 text-center"><div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-slate-700 border-t-cyan-400" /><p>Loading your roadmap...</p><p className="mt-2 text-xs text-slate-500">Connecting to your private progress</p></div></div>;
+  if (!data) return <div className="flex min-h-screen items-center justify-center bg-[#0b1120] px-5 text-center text-rose-300">{message || 'Unable to load your roadmap.'}</div>;
   const filteredCategories = data.categories.map((category) => ({ ...category, topics: category.topics.filter((topic) => matchesFilter(topic, filter, search)) })).filter((category) => category.topics.length);
   const filteredProjects = data.projects.filter((project) => matchesFilter(project, filter, search));
   const addItem = async (event) => { event.preventDefault(); if (!newTitle.trim()) return; const category = data.categories.find((entry) => entry.id === categoryId); const row = { user_id: session.user.id, item_key: `${itemType}-${crypto.randomUUID()}`, item_type: itemType, category_id: itemType === 'topic' ? categoryId : null, category_name: itemType === 'topic' ? category.name : null, title: newTitle.trim(), status: 'Not Started' }; const { error } = await supabase.from('roadmap_items').insert(row); if (error) setMessage(error.message); else { setNewTitle(''); setModal(null); refresh(); } };
