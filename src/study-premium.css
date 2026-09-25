@@ -1,0 +1,787 @@
+/* ==========================================================================
+   Clean Distraction-Free Reading Experience
+   Inspired by Stripe Docs, Linear Docs, Apple Documentation, & Notion
+   ========================================================================== */
+
+/* Layout Base & Whitespace */
+.study-view-wrapper {
+  max-width: 780px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 56px;
+  padding: 48px 24px 120px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #0f172a;
+  animation: fade-in-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fade-in-up {
+  0% { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* --------------------------------------------------------------------------
+   Navigation & Breadcrumbs (Navigation font size: 16-18px)
+   -------------------------------------------------------------------------- */
+.study-top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 24px;
+}
+
+.study-breadcrumbs {
+  font-size: 16px; /* Navigation: 16-18px */
+  font-weight: 500;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.breadcrumb-link {
+  color: #64748b;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 16px;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.breadcrumb-link:hover { color: #0f172a; }
+
+.breadcrumb-sep { color: #cbd5e1; }
+
+.breadcrumb-cat {
+  color: #475569;
+  font-weight: 500;
+}
+
+.breadcrumb-curr {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.study-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.study-status-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.study-status-label {
+  font-size: 16px; /* Navigation: 16-18px */
+  font-weight: 600;
+  color: #64748b;
+}
+
+.study-status-select {
+  appearance: none;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-size: 16px; /* Navigation: 16-18px */
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+.study-status-select:hover { border-color: #94a3b8; }
+
+.btn-secondary {
+  padding: 9px 18px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  border-radius: 8px;
+  font-size: 16px; /* Navigation: 16-18px */
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-secondary:hover { background: #e2e8f0; color: #0f172a; }
+
+/* --------------------------------------------------------------------------
+   Hero Lesson Header (Main lesson title: 38-42px)
+   -------------------------------------------------------------------------- */
+.study-hero-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+}
+
+.study-hero-main {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.study-hero-tags-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.study-category-badge {
+  background: #f1f5f9;
+  color: #334155;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.study-pill-mastered { background: #ecfdf5; color: #047857; font-weight: 700; font-size: 14px; padding: 6px 16px; border-radius: 20px; border: 1px solid #a7f3d0; }
+.study-pill-progress { background: #fffbeb; color: #b45309; font-weight: 700; font-size: 14px; padding: 6px 16px; border-radius: 20px; border: 1px solid #fde68a; }
+.study-pill-todo { background: #f8fafc; color: #64748b; font-weight: 700; font-size: 14px; padding: 6px 16px; border-radius: 20px; border: 1px solid #e2e8f0; }
+
+.study-hero-title {
+  font-size: 28px; /* Main lesson title */
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.15;
+}
+
+.study-hero-subtitle {
+  font-size: 16px; /* Body text */
+  line-height: 1.5; /* Line spacing */
+  color: #475569;
+  margin: 0;
+  max-width: 820px;
+}
+
+/* Minimal Progress Tracker */
+.study-minimal-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 8px;
+}
+
+.study-progress-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.study-progress-track {
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.study-progress-bar {
+  height: 100%;
+  border-radius: 8px;
+  transition: width 0.3s ease;
+}
+
+.study-steps-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.study-step-sep {
+  color: #cbd5e1;
+  font-size: 14px;
+}
+
+.study-step-dot {
+  font-size: 13px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+.study-step-dot.active { color: #4f46e5; font-weight: 700; }
+.study-step-dot.done { color: #10b981; font-weight: 700; }
+
+.study-progress-percent {
+  font-size: 13px;
+  font-weight: 800;
+  color: #4f46e5;
+}
+
+/* --------------------------------------------------------------------------
+   Main Sections Grid & Cards (Topic Title: 28-32px, Body: 18-20px)
+   -------------------------------------------------------------------------- */
+.study-sections-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 48px; /* Spacing between major section cards */
+}
+
+.study-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 44px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+}
+
+.study-card-header {
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.study-card-title {
+  font-size: 30px; /* Topic title: 28-32px */
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.study-card-sub {
+  font-size: 18px; /* Body text: 18-20px */
+  color: #64748b;
+  margin: 6px 0 0;
+  line-height: 1.6;
+}
+
+.study-card-body {
+  font-size: 19px; /* Body text: 18-20px */
+  line-height: 1.85; /* Generous line spacing */
+  color: #334155;
+}
+
+/* --------------------------------------------------------------------------
+   Core Concept Triad Cards
+   -------------------------------------------------------------------------- */
+.overview-triad-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.overview-block {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.overview-tag {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 6px;
+  width: fit-content;
+}
+.overview-tag.blue { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.overview-tag.emerald { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+.overview-tag.purple { background: #faf5ff; color: #6b21a8; border: 1px solid #e9d5ff; }
+
+.overview-text {
+  font-size: 18px; /* Body text: 18-20px */
+  line-height: 1.75;
+  color: #334155;
+  margin: 0;
+}
+
+/* Core Concepts List */
+.concepts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.concept-card {
+  background: #f8fafc;
+  border-left: 4px solid #4f46e5;
+  padding: 28px;
+  border-radius: 0 14px 14px 0;
+}
+
+.concept-card-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.concept-num {
+  background: #4f46e5;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.concept-explanation {
+  font-size: 19px; /* Body text: 18-20px */
+  line-height: 1.85;
+  color: #334155;
+  margin: 0 0 16px 0;
+}
+
+/* Terms Dictionary Pills (Card text: 17-18px) */
+.terms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.term-pill-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 14px 18px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.term-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 17.5px; /* Code: 17-18px */
+  font-weight: 700;
+  color: #4f46e5;
+}
+
+.term-def {
+  font-size: 17.5px; /* Card text: 17-18px */
+  line-height: 1.6;
+  color: #475569;
+}
+
+/* --------------------------------------------------------------------------
+   Progressive Disclosure Expandable Accordions
+   -------------------------------------------------------------------------- */
+.drawer-accordion-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.drawer-accordion {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #ffffff;
+  transition: border-color 0.2s ease;
+}
+.drawer-accordion:hover { border-color: #cbd5e1; }
+
+.drawer-toggle-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 28px;
+  background: #f8fafc;
+  border: 0;
+  font-size: 18px; /* Card text: 17-18px */
+  font-weight: 700;
+  color: #0f172a;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease;
+}
+.drawer-toggle-btn:hover { background: #f1f5f9; }
+
+.drawer-icon-arrow {
+  width: 20px;
+  height: 20px;
+  color: #64748b;
+  transition: transform 0.2s ease;
+}
+.drawer-icon-arrow.open { transform: rotate(180deg); }
+
+.drawer-content-body {
+  padding: 32px 28px;
+  border-top: 1px solid #e2e8f0;
+  font-size: 18px; /* Card text: 17-18px */
+  line-height: 1.8;
+  color: #334155;
+  background: #ffffff;
+}
+
+/* --------------------------------------------------------------------------
+   Code Snippets & Syntax Display (Code: 17-18px)
+   -------------------------------------------------------------------------- */
+.syntax-code-display {
+  background: #1e1e1e;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #333333;
+  margin-bottom: 24px;
+}
+
+.syntax-code-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: #252526;
+  border-bottom: 1px solid #333333;
+  color: #cccccc;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.code-lang-badge {
+  background: #007acc;
+  color: #ffffff;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.shiki-static-container .shiki {
+  padding: 24px !important;
+  font-size: 17.5px !important; /* Code text: 17-18px */
+  line-height: 1.75 !important;
+  margin: 0 !important;
+  font-family: 'JetBrains Mono', monospace !important;
+}
+
+/* Syntax Breakdown Grid */
+.syntax-breakdown-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.syntax-part-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 14px 18px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.syntax-token {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 17.5px; /* Code: 17-18px */
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.syntax-meaning {
+  font-size: 17px;
+  color: #475569;
+}
+
+/* --------------------------------------------------------------------------
+   Step-by-step Implementation Timeline
+   -------------------------------------------------------------------------- */
+.implementation-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.step-timeline-node {
+  display: flex;
+  gap: 20px;
+}
+
+.step-badge-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.step-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #4f46e5;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.step-line {
+  width: 2px;
+  flex: 1;
+  background: #e2e8f0;
+  margin-top: 8px;
+}
+
+.step-content-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 24px;
+  border-radius: 14px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.step-title {
+  font-size: 19px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.step-instruction {
+  font-size: 17.5px; /* Card text: 17-18px */
+  line-height: 1.7;
+  color: #334155;
+  margin: 0;
+}
+
+.step-why-badge {
+  font-size: 16px;
+  color: #475569;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+
+/* --------------------------------------------------------------------------
+   Best Practices Cards
+   -------------------------------------------------------------------------- */
+.best-practices-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.bp-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.bp-card h4 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.bp-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 17px;
+  color: #334155;
+}
+
+/* --------------------------------------------------------------------------
+   Common Pitfalls
+   -------------------------------------------------------------------------- */
+.mistakes-deck {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.mistake-card {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  border-radius: 14px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mistake-header h4 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #9f1239;
+  margin: 0;
+}
+
+.mistake-solution-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.solution-box {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 16px;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+/* --------------------------------------------------------------------------
+   Interactive Quiz & Mastery Exam (Zero Emojis)
+   -------------------------------------------------------------------------- */
+.study-question-text {
+  font-size: 20px; /* Body text: 18-20px */
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 24px 0;
+  line-height: 1.6;
+}
+
+.study-options-container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.study-choice-btn {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 18px 22px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  text-align: left;
+  font-size: 18px; /* Card text: 17-18px */
+  line-height: 1.6;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.study-choice-btn:hover {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.study-choice-btn.selected {
+  background: #eef2ff;
+  border-color: #6366f1;
+  color: #312e81;
+  font-weight: 600;
+}
+
+.study-choice-radio {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;
+  flex-shrink: 0;
+}
+
+.study-choice-radio.checked {
+  border-color: #4f46e5;
+  background: #4f46e5;
+}
+
+.btn-primary {
+  padding: 14px 28px;
+  background: #4f46e5;
+  color: #ffffff;
+  border: 0;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.btn-primary:hover { background: #4338ca; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-emerald {
+  padding: 14px 28px;
+  background: #059669;
+  color: #ffffff;
+  border: 0;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.btn-emerald:hover { background: #047857; }
+.btn-emerald:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.study-feedback-box {
+  margin-top: 20px;
+  padding: 18px 24px;
+  border-radius: 12px;
+  font-size: 17.5px;
+  line-height: 1.7;
+}
+
+.study-feedback-box.success {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #047857;
+}
+
+.study-feedback-box.error {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #be123c;
+}
+
+.study-done-badge {
+  font-size: 14px;
+  font-weight: 700;
+  color: #047857;
+  background: #d1fae5;
+  padding: 6px 14px;
+  border-radius: 14px;
+}
+
+.study-locked-badge {
+  font-size: 14px;
+  font-weight: 700;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 6px 14px;
+  border-radius: 14px;
+}
