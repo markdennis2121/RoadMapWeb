@@ -4490,3 +4490,261 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .skill-star {
   color: #f59e0b;
 }
+
+/* ======================================================================
+   Responsive reading typography
+   ====================================================================== */
+.study-view-wrapper {
+  width: 100%;
+  min-width: 0;
+  padding-inline: clamp(12px, 2.5vw, 28px);
+  --study-title-size: clamp(28px, calc(1.4vw + 22.5px), 42px);
+  --study-section-size: clamp(22px, calc(0.9vw + 20px), 32px);
+  --study-body-size: clamp(16px, calc(0.45vw + 14.3px), 20px);
+  --study-code-size: clamp(16px, calc(0.2vw + 16.2px), 19px);
+}
+
+.study-hero-title {
+  max-width: 100%;
+  font-size: var(--study-title-size);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.study-hero-subtitle,
+.study-card-body,
+.study-lesson-prose,
+.study-takeaways-list li,
+.concept-explanation,
+.overview-text,
+.term-def,
+.drawer-content-body,
+.lesson-objectives li,
+.beginner-where-used,
+.beginner-small-win > p,
+.beginner-small-win-answer p,
+.beginner-code-walkthrough li > p {
+  font-size: var(--study-body-size);
+}
+
+.study-card-title,
+.concept-card-title {
+  font-size: var(--study-section-size);
+  line-height: 1.25;
+}
+
+.shiki-static-container .shiki,
+.beginner-code-walkthrough li > code {
+  font-size: var(--study-code-size) !important;
+}
+
+.study-card,
+.study-card-body,
+.concept-card,
+.lesson-objectives,
+.beginner-code-walkthrough,
+.pg-beginner-card {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.study-card-body,
+.study-lesson-prose,
+.concept-explanation,
+.lesson-objectives li,
+.beginner-where-used,
+.beginner-small-win > p,
+.beginner-small-win-answer p,
+.beginner-code-walkthrough li > p {
+  overflow-wrap: anywhere;
+}
+
+.pg-highlight-layer,
+.pg-code-textarea,
+.pg-output-text {
+  font-size: var(--study-code-size);
+}
+
+.pg-output-empty { font-size: var(--study-body-size); }
+
+.sidebar-catalog-heading > span {
+  font-size: clamp(13px, calc(0.25vw + 12px), 15px);
+}
+
+.sidebar-cat-left {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.sidebar-cat-header .sidebar-cat-name {
+  min-width: 0;
+  font-size: clamp(14px, calc(0.2vw + 13.3px), 16px);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.sidebar-technology-header .sidebar-cat-name {
+  min-width: 0;
+  font-size: clamp(15px, calc(0.25vw + 14px), 17px);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-technology-header .sidebar-cat-arrow {
+  flex: 0 0 16px;
+}
+
+.sidebar-lesson-list .sidebar-topic-item {
+  min-width: 0;
+  font-size: clamp(14px, calc(0.2vw + 13.3px), 16px);
+  line-height: 1.4;
+}
+
+.sidebar-topic-label,
+.journey-lesson-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 600px) {
+  .study-view-wrapper { gap: 18px; }
+  .study-card { padding: clamp(16px, 4vw, 22px); }
+  .study-hero-card { padding: clamp(18px, 4vw, 24px); }
+  .study-top-nav { flex-wrap: wrap; row-gap: 12px; }
+  .study-breadcrumbs { min-width: 0; flex-wrap: wrap; overflow-wrap: anywhere; }
+  .study-card-header { min-width: 0; }
+}
+
+@media (min-width: 1600px) {
+  .study-view-wrapper {
+    --study-title-size: 42px;
+    --study-section-size: 32px;
+    --study-body-size: 20px;
+    --study-code-size: 19px;
+  }
+}
+
+/* Sidebar sizing and wrapping: keep the complete learning catalog readable. */
+.workspace-sidebar {
+  box-sizing: border-box;
+  min-width: 320px;
+  max-width: 680px;
+}
+
+.sidebar-tree-wrapper,
+.nav-tree-container,
+.nav-tree-scroll,
+.sidebar-category-list,
+.sidebar-cat-group,
+.sidebar-technology-list,
+.sidebar-technology {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.sidebar-cat-group {
+  overflow: visible;
+}
+
+.sidebar-cat-header {
+  gap: 12px;
+  padding: 10px 8px;
+}
+
+.sidebar-cat-header .sidebar-cat-text,
+.sidebar-cat-left {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.sidebar-cat-header .sidebar-cat-name {
+  display: block;
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: break-word;
+  text-overflow: clip;
+}
+
+.sidebar-cat-header .sidebar-cat-arrow {
+  flex: 0 0 18px;
+}
+
+.sidebar-technology-header {
+  min-width: 0;
+  padding-block: 8px;
+}
+
+.sidebar-technology-header .sidebar-cat-left {
+  flex: 1 1 auto;
+  align-items: center;
+}
+
+.sidebar-technology-header .sidebar-cat-name {
+  flex: 1 1 auto;
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: break-word;
+  text-overflow: clip;
+}
+
+.sidebar-technology-header .sidebar-cat-arrow {
+  flex: 0 0 16px;
+  align-self: center;
+}
+
+.sidebar-lesson-list {
+  padding-left: 22px;
+}
+
+.sidebar-lesson-list .sidebar-topic-item {
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 8px;
+  white-space: normal;
+}
+
+.sidebar-topic-label,
+.journey-lesson-title {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: break-word;
+  text-overflow: clip;
+  line-height: 1.4;
+}
+
+.sidebar-topic-devicon {
+  flex: 0 0 18px;
+  margin-top: 2px;
+}
+
+.sidebar-resizer {
+  width: 12px;
+  flex: 0 0 12px;
+  margin-inline: -6px;
+  touch-action: none;
+  outline-offset: -2px;
+}
+
+.sidebar-resizer:focus-visible {
+  outline: 2px solid #6366f1;
+}
+
+@media (max-width: 768px) {
+  .workspace-sidebar {
+    width: min(420px, calc(100vw - 24px));
+    min-width: 0;
+    max-width: none;
+    padding-inline: 12px;
+  }
+
+  .workspace-sidebar.mobile-open {
+    width: min(420px, calc(100vw - 24px));
+  }
+}

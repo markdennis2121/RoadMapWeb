@@ -167,27 +167,36 @@ export function DashboardShell({
 
   // Sidebar Resizing State
   const [sidebarWidth, setSidebarWidth] = useState(() => {
-    const saved = localStorage.getItem('roadmap_sidebar_width');
-    return saved ? parseInt(saved, 10) : 310;
+    const saved = Number.parseInt(localStorage.getItem('roadmap_sidebar_width'), 10);
+    const maximum = Math.max(320, Math.min(680, window.innerWidth - 380));
+    const initial = Number.isFinite(saved) ? saved : 360;
+    return Math.max(Math.min(360, maximum), Math.min(initial, maximum));
   });
   const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
-    const handleMouseMove = (e) => {
+    const handlePointerMove = (e) => {
       if (!isDragging) return;
-      const newWidth = Math.max(240, Math.min(e.clientX, 600)); // Min 240px, Max 600px
+      const maximum = Math.max(320, Math.min(680, window.innerWidth - 380));
+      const newWidth = Math.max(320, Math.min(e.clientX, maximum));
       setSidebarWidth(newWidth);
     };
 
-    const handleMouseUp = () => {
+    const handlePointerUp = () => {
       if (isDragging) {
         setIsDragging(false);
       }
     };
 
+    const handleViewportResize = () => {
+      const maximum = Math.max(320, Math.min(680, window.innerWidth - 380));
+      setSidebarWidth((width) => Math.min(width, maximum));
+    };
+
     if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener('pointermove', handlePointerMove);
+      document.addEventListener('pointerup', handlePointerUp);
+      document.addEventListener('pointercancel', handlePointerUp);
       document.body.style.cursor = 'col-resize';
       document.body.style.userSelect = 'none';
     } else {
@@ -195,10 +204,13 @@ export function DashboardShell({
       document.body.style.userSelect = '';
       localStorage.setItem('roadmap_sidebar_width', sidebarWidth);
     }
+    window.addEventListener('resize', handleViewportResize);
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('pointermove', handlePointerMove);
+      document.removeEventListener('pointerup', handlePointerUp);
+      document.removeEventListener('pointercancel', handlePointerUp);
+      window.removeEventListener('resize', handleViewportResize);
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
     };
@@ -447,8 +459,21 @@ export function DashboardShell({
       {!mobileSidebarOpen && (
         <div
           className={`sidebar-resizer ${isDragging ? 'is-dragging' : ''}`}
-          onMouseDown={() => setIsDragging(true)}
-          aria-hidden="true"
+          onPointerDown={(event) => { event.preventDefault(); setIsDragging(true); }}
+          onKeyDown={(event) => {
+            if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+            event.preventDefault();
+            const direction = event.key === 'ArrowRight' ? 1 : -1;
+            const maximum = Math.max(320, Math.min(680, window.innerWidth - 380));
+            setSidebarWidth((width) => Math.max(320, Math.min(maximum, width + direction * 24)));
+          }}
+          role="separator"
+          aria-label="Resize sidebar"
+          aria-orientation="vertical"
+          aria-valuemin={320}
+          aria-valuemax={Math.max(320, Math.min(680, window.innerWidth - 380))}
+          aria-valuenow={sidebarWidth}
+          tabIndex={0}
         />
       )}
 
