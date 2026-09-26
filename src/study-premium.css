@@ -281,6 +281,71 @@
   background: #f8fafc;
 }
 
+.beginner-where-used {
+  margin: 16px 2px 0;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.beginner-code-walkthrough {
+  padding: 18px 20px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.beginner-code-walkthrough h4 {
+  margin: 0 0 12px;
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.beginner-code-walkthrough ol {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.beginner-code-walkthrough li {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-items: start;
+  gap: 4px 10px;
+}
+
+.beginner-code-line-number {
+  padding-top: 2px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.beginner-code-walkthrough li > code {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: #312e81;
+  font-family: 'Cascadia Code', 'JetBrains Mono', Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.beginner-code-walkthrough li > p {
+  grid-column: 2;
+  margin: 0;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+@media (max-width: 560px) {
+  .beginner-code-walkthrough { padding: 15px 12px; }
+  .beginner-code-walkthrough li { grid-template-columns: 42px minmax(0, 1fr); gap: 3px 8px; }
+}
+
 .lesson-objectives h3 {
   margin: 0 0 12px;
   color: #1e293b;

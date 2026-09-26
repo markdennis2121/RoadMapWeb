@@ -160,8 +160,9 @@ export function DashboardShell({
   reset,
   modal
 }) {
-  const [section, setSection] = useState('overview'); // 'overview', 'roadmap', 'projects', 'learning', 'study'
-  const [activeTopicId, setActiveTopicId] = useState(null);
+  const initialTopicId = () => new URLSearchParams(window.location.search).get('topic');
+  const [section, setSection] = useState(() => initialTopicId() ? 'study' : 'overview'); // 'overview', 'roadmap', 'projects', 'learning', 'study'
+  const [activeTopicId, setActiveTopicId] = useState(initialTopicId);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // Sidebar Resizing State
@@ -295,13 +296,42 @@ export function DashboardShell({
     return () => document.removeEventListener('mousedown', close);
   }, []);
 
+  const syncTopicUrl = (topicId) => {
+    const url = new URL(window.location.href);
+    if (topicId) url.searchParams.set('topic', topicId);
+    else url.searchParams.delete('topic');
+    window.history.pushState({ topicId: topicId || null }, '', `${url.pathname}${url.search}${url.hash}`);
+  };
+
+  useEffect(() => {
+    const handleHistoryNavigation = () => {
+      const topicId = new URLSearchParams(window.location.search).get('topic');
+      setActiveTopicId(topicId);
+      setSection(topicId ? 'study' : 'overview');
+      setMobileSidebarOpen(false);
+    };
+    window.addEventListener('popstate', handleHistoryNavigation);
+    return () => window.removeEventListener('popstate', handleHistoryNavigation);
+  }, []);
+
+  const handleGoHome = () => {
+    syncTopicUrl(null);
+    setActiveTopicId(null);
+    setSection('overview');
+    setMobileSidebarOpen(false);
+    setProfileOpen(false);
+    window.scrollTo(0, 0);
+  };
+
   const handleSelectTopic = (topic) => {
+    syncTopicUrl(topic.id);
     setActiveTopicId(topic.id);
     setSection('study');
     setMobileSidebarOpen(false);
   };
 
   const handleBackToOverview = () => {
+    syncTopicUrl(null);
     setActiveTopicId(null);
     setSection('overview');
   };
@@ -382,13 +412,10 @@ export function DashboardShell({
         style={!mobileSidebarOpen ? { width: sidebarWidth, flex: `0 0 ${sidebarWidth}px` } : {}}
       >
         <div className="sidebar-top">
-          <div className="brand-lockup">
+          <button type="button" className="brand-lockup" onClick={handleGoHome} aria-label="Go to CodeForge home">
             <img className="brand-mark" style={{ objectFit: 'contain' }} src="/logo.png" alt="" />
-            <div>
-              <strong>CodeForge</strong>
-              
-            </div>
-          </div>
+            <strong>CodeForge</strong>
+          </button>
           {mobileSidebarOpen && (
             <button
               onClick={() => setMobileSidebarOpen(false)}
@@ -439,10 +466,10 @@ export function DashboardShell({
             </svg>
           </button>
 
-          <div className="mobile-brand">
+          <button type="button" className="mobile-brand" onClick={handleGoHome} aria-label="Go to CodeForge home">
             <img className="brand-mark" style={{ objectFit: 'contain' }} src="/logo.png" alt="" />
             <strong>CodeForge</strong>
-          </div>
+          </button>
 
           <div className="header-search" style={{ position: 'relative' }}>
             <span aria-hidden="true">⌕</span>

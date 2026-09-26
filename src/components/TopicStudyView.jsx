@@ -2,6 +2,26 @@ import { useState, useMemo, useLayoutEffect } from 'react';
 import { getLearningContent } from '../../js/learning.js';
 import { CodePlayground, StaticCodeBlock } from './CodePlayground.jsx';
 import { TopicDiagram } from './TopicDiagram.jsx';
+import { buildLineWalkthrough } from '../lib/beginnerTeaching.js';
+
+function BeginnerCodeExample({ code, language, topicTitle }) {
+  const walkthrough = useMemo(() => buildLineWalkthrough(code, language, topicTitle), [code, language, topicTitle]);
+  return (
+    <>
+      <StaticCodeBlock code={code} language={language || 'javascript'} />
+      {walkthrough.length > 0 && <div className="beginner-code-walkthrough">
+        <h4>Let’s read it line by line</h4>
+        <ol>
+          {walkthrough.map((item) => <li key={item.line}>
+            <span className="beginner-code-line-number">Line {item.line}</span>
+            <code>{item.source.trim()}</code>
+            <p>{item.explanation}</p>
+          </li>)}
+        </ol>
+      </div>}
+    </>
+  );
+}
 
 export function TopicStudyView({
   topic,
@@ -153,7 +173,7 @@ export function TopicStudyView({
           </div>
           <h1 className="study-hero-title">{topic.title}</h1>
           <p className="study-hero-subtitle">
-            {content.overview?.what || content.lesson}
+            {content.beginnerGuide?.what || content.overview?.what || content.lesson}
           </p>
         </div>
 
@@ -198,24 +218,26 @@ export function TopicStudyView({
           <div className="study-card-body">
             <div className="overview-triad-grid">
               <div className="overview-block">
-                <span className="overview-tag blue">What You'll Learn</span>
-                <p className="overview-text">{content.overview?.what || content.lesson}</p>
+                <span className="overview-tag blue">What Is It?</span>
+                <p className="overview-text">{content.beginnerGuide?.what || content.overview?.what || content.lesson}</p>
               </div>
 
               <div className="overview-block">
-                <span className="overview-tag emerald">Why It Matters</span>
+                <span className="overview-tag emerald">Why Do We Need It?</span>
                 <p className="overview-text">
-                  {content.overview?.why || 'Essential for professional software engineering and production application architecture.'}
+                  {content.beginnerGuide?.why || content.overview?.why || 'It helps a program do a useful job for the person using it.'}
                 </p>
               </div>
 
               <div className="overview-block">
-                <span className="overview-tag purple">Real-World Usage</span>
+                <span className="overview-tag purple">A Helpful Comparison</span>
                 <p className="overview-text">
-                  {content.overview?.whereUsed || 'Used extensively across frontend frameworks, web servers, and client applications.'}
+                  {content.beginnerGuide?.analogy || content.overview?.whereUsed || 'Think of this as one small tool you can use to solve a larger problem.'}
                 </p>
               </div>
             </div>
+
+            {content.overview?.whereUsed && <p className="beginner-where-used"><strong>Where you may see it:</strong> {content.overview.whereUsed}</p>}
 
             {learningObjectives.length > 0 && (
               <div className="lesson-objectives">
@@ -236,8 +258,6 @@ export function TopicStudyView({
                     <h3 className="concept-card-title">
                       <span className="concept-num">{idx + 1}</span> {concept.title}
                     </h3>
-                    <p className="concept-explanation">{concept.explanation}</p>
-
                     {concept.terms && concept.terms.length > 0 && (
                       <div className="terms-grid">
                         {concept.terms.map((t, tIdx) => (
@@ -248,6 +268,8 @@ export function TopicStudyView({
                         ))}
                       </div>
                     )}
+
+                    <p className="concept-explanation">{concept.explanation}</p>
                   </div>
                 ))}
               </div>
@@ -269,8 +291,8 @@ export function TopicStudyView({
         <section className="study-card">
           <div className="study-card-header">
             <div>
-              <h2 className="study-card-title">Practical Example</h2>
-              <p className="study-card-sub">Working code blueprints and interactive live playground</p>
+              <h2 className="study-card-title">Simple Example</h2>
+              <p className="study-card-sub">Read what each line does, then try changing one small part.</p>
             </div>
           </div>
 
@@ -286,7 +308,7 @@ export function TopicStudyView({
                       </span>
                     </div>
 
-                    <StaticCodeBlock code={ex.code} language={content.codeLanguage || 'javascript'} />
+                    <BeginnerCodeExample code={ex.code} language={content.codeLanguage} topicTitle={topic.title} />
 
                     <div className="p-4 bg-white border-t border-slate-200 text-sm text-slate-700">
                       <strong>Analysis:</strong> {ex.explanation}
@@ -337,7 +359,7 @@ export function TopicStudyView({
                   {content.syntaxStructure.generalStructure && (
                     <div className="mb-6">
                       <h4 className="text-base font-bold text-slate-900 mb-2">General Code Blueprint</h4>
-                      <StaticCodeBlock code={content.syntaxStructure.generalStructure} language={content.codeLanguage || 'javascript'} />
+                      <BeginnerCodeExample code={content.syntaxStructure.generalStructure} language={content.codeLanguage} topicTitle={topic.title} />
                     </div>
                   )}
 
@@ -396,7 +418,7 @@ export function TopicStudyView({
                             <strong>Why This Step Is Necessary:</strong> {stepItem.whyNecessary}
                           </div>
                           {stepItem.codeSnippet && (
-                            <StaticCodeBlock code={stepItem.codeSnippet} language={content.codeLanguage || 'javascript'} />
+                            <BeginnerCodeExample code={stepItem.codeSnippet} language={content.codeLanguage} topicTitle={topic.title} />
                           )}
                         </div>
                       </div>

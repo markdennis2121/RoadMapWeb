@@ -5,6 +5,7 @@ import { GIT_CURRICULUM } from './curriculum/gitCurriculum.js';
 import { REACT_CURRICULUM } from './curriculum/reactCurriculum.js';
 import { NODE_CURRICULUM } from './curriculum/nodeCurriculum.js';
 import { getLanguageTrackLesson, getSupplementaryLesson } from './curriculum/languageTrackLessons.js';
+import { getBeginnerGuide } from '../src/lib/beginnerTeaching.js';
 
 // Unified Comprehensive Curriculum Master Dictionary (All 36 Roadmap Topics)
 export const LEARNING_CONTENT = {
@@ -341,6 +342,7 @@ function normalizeContent(raw, title) {
 
   return {
     ...raw,
+    beginnerGuide: raw.beginnerGuide || getBeginnerGuide(title, raw.category),
     lesson,
     points,
     proTips,
