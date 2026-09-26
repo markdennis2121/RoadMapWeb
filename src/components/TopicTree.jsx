@@ -82,20 +82,10 @@ function buildCatalogGroups(categories) {
 }
 
 export function TopicTree({ categories = [], activeTopicId = null, onSelectTopic }) {
-  const [treeSearch, setTreeSearch] = useState('');
   const [expandedGroups, setExpandedGroups] = useState({});
   const [expandedTechnologies, setExpandedTechnologies] = useState({});
   const catalogGroups = useMemo(() => buildCatalogGroups(categories), [categories]);
-  const query = treeSearch.trim().toLowerCase();
-  const visibleGroups = catalogGroups.map((group) => ({
-    ...group,
-    technologies: group.technologies.map((technology) => ({
-      ...technology,
-      topics: technology.topics.filter((topic) =>
-        !query || group.name.toLowerCase().includes(query) || technology.name.toLowerCase().includes(query) || topic.title.toLowerCase().includes(query)
-      )
-    })).filter((technology) => technology.topics.length)
-  })).filter((group) => group.technologies.length && (!query || group.name.toLowerCase().includes(query) || group.technologies.length));
+  const visibleGroups = catalogGroups;
 
   const toggleGroup = (id) => setExpandedGroups((current) => ({ ...current, [id]: !current[id] }));
   const toggleTechnology = (id) => setExpandedTechnologies((current) => ({ ...current, [id]: !current[id] }));
@@ -113,20 +103,6 @@ export function TopicTree({ categories = [], activeTopicId = null, onSelectTopic
   return (
     <div className="nav-tree-container">
       <div className="nav-tree-toolbar">
-        <div className="tree-search-bar">
-          <svg className="w-4 h-4 text-slate-400 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-          </svg>
-          <input
-            type="text"
-            value={treeSearch}
-            onChange={(event) => setTreeSearch(event.target.value)}
-            placeholder="Search technologies..."
-            className="tree-search-field"
-            aria-label="Search technologies and lessons"
-          />
-          {treeSearch && <button onClick={() => setTreeSearch('')} className="tree-clear-btn" aria-label="Clear search">×</button>}
-        </div>
         <div className="sidebar-catalog-heading">
           <span>Categories</span>
           <button type="button" onClick={toggleAll} aria-expanded={areAllExpanded}>
@@ -138,7 +114,7 @@ export function TopicTree({ categories = [], activeTopicId = null, onSelectTopic
       <div className="nav-tree-scroll">
         <div className="sidebar-category-list">
           {visibleGroups.map((group) => {
-            const isGroupExpanded = query ? true : !!expandedGroups[group.id];
+            const isGroupExpanded = !!expandedGroups[group.id];
             return (
               <section key={group.id} className="sidebar-cat-group">
                 <button
@@ -155,7 +131,7 @@ export function TopicTree({ categories = [], activeTopicId = null, onSelectTopic
 
                 {isGroupExpanded && <div className="sidebar-topic-items sidebar-technology-list">
                   {group.technologies.map((technology) => {
-                    const isTechnologyExpanded = query ? true : !!expandedTechnologies[technology.id];
+                    const isTechnologyExpanded = !!expandedTechnologies[technology.id];
                     const meta = getCategoryDeviconMeta(technology.iconId || technology.id);
                     return (
                       <div className="sidebar-technology" key={technology.id}>

@@ -35,7 +35,25 @@ function Check({ checked, onChange, label }) {
   );
 }
 
-function WelcomeDashboard({ categories, onStartLearning }) {
+function SearchBox({ query, onQueryChange, focused, onFocus, onBlur, onKeyDown, results, selectedIndex, onChoose, variant = '' }) {
+  return (
+    <div className={`search-experience ${variant}`}>
+      <span className="search-experience-icon" aria-hidden="true">⌕</span>
+      <input value={query} onChange={(event) => onQueryChange(event.target.value)} onFocus={onFocus} onBlur={onBlur} onKeyDown={onKeyDown} placeholder="Search technologies, lessons, or topics..." aria-label="Search technologies, lessons, or topics" />
+      {focused && query.length >= 2 && (
+        <div className="search-dropdown search-experience-dropdown">
+          {results.length > 0 ? results.map((topic, index) => (
+            <button type="button" key={topic.id} onClick={() => onChoose(topic)} onMouseEnter={() => onChoose(topic, index, false)} className={index === selectedIndex ? 'is-selected' : ''}>
+              <strong>{topic.title}</strong><span>{topic.categoryName}</span>
+            </button>
+          )) : <div className="search-experience-empty">No matching lessons or content found.</div>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function WelcomeDashboard({ categories, onStartLearning, searchProps }) {
   const featuredLanguages = [
     ['js', 'JavaScript'],
     ['python', 'Python'],
@@ -283,6 +301,24 @@ export function DashboardShell({
     }
   };
 
+  const isWelcomePage = !activeTopicId && section === 'overview';
+  const searchProps = {
+    query: searchQuery,
+    onQueryChange: setSearchQuery,
+    focused: isSearchFocused,
+    onFocus: () => setIsSearchFocused(true),
+    onBlur: () => setTimeout(() => setIsSearchFocused(false), 200),
+    onKeyDown: handleSearchKeyDown,
+    results: searchResults,
+    selectedIndex: searchSelectedIndex,
+    onChoose: (topic, index, select = true) => {
+      if (!select) { setSearchSelectedIndex(index); return; }
+      handleSelectTopic(topic);
+      setSearchQuery('');
+      setIsSearchFocused(false);
+    }
+  };
+
   const continueTopic = allTopics.find((topic) => topic.status !== 'Completed') || allTopics[0];
 
   const topicProgress = (topic) =>
@@ -427,6 +463,7 @@ export function DashboardShell({
           <button type="button" className="brand-lockup" onClick={handleGoHome} aria-label="Go to CodeForge home">
             <img className="brand-mark" style={{ objectFit: 'contain' }} src="/logo.png" alt="" />
             <strong>CodeForge</strong>
+            <span className="brand-beta-badge">BETA</span>
           </button>
           {mobileSidebarOpen && (
             <button
@@ -496,51 +533,7 @@ export function DashboardShell({
             <strong>CodeForge</strong>
           </button>
 
-          <div className="header-search" style={{ position: 'relative' }}>
-            <span aria-hidden="true">⌕</span>
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => setIsSearchFocused(true)}
-              onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-              onKeyDown={handleSearchKeyDown}
-              placeholder="Search lessons, quizzes, examples..."
-              aria-label="Search lessons"
-            />
-            {isSearchFocused && searchQuery.length >= 2 && (
-              <div className="search-dropdown" style={{
-                position: 'absolute', top: '100%', left: 0, right: 0,
-                background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)', marginTop: '8px', zIndex: 50,
-                maxHeight: '300px', overflowY: 'auto'
-              }}>
-                {searchResults.length > 0 ? (
-                  searchResults.map((t, idx) => (
-                    <div
-                      key={t.id}
-                      onClick={() => { handleSelectTopic(t); setSearchQuery(''); }}
-                      onMouseEnter={() => setSearchSelectedIndex(idx)}
-                      style={{
-                        padding: '12px 16px',
-                        cursor: 'pointer',
-                        background: idx === searchSelectedIndex ? '#f1f5f9' : '#fff',
-                        borderBottom: idx < searchResults.length - 1 ? '1px solid #f1f5f9' : 'none',
-                        display: 'flex',
-                        flexDirection: 'column'
-                      }}
-                    >
-                      <strong style={{ color: '#0f172a', fontSize: '14px' }}>{t.title}</strong>
-                      <span style={{ color: '#64748b', fontSize: '12px' }}>{t.categoryName}</span>
-                    </div>
-                  ))
-                ) : (
-                  <div style={{ padding: '16px', color: '#64748b', fontSize: '14px', textAlign: 'center' }}>
-                    No matching lessons or content found.
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          <SearchBox {...searchProps} variant={isWelcomePage ? 'header-search header-search-primary' : 'header-search'} />
 
           <div className="header-actions">
             {/* Profile Dropdown */}
@@ -622,7 +615,7 @@ export function DashboardShell({
               onSelectTopic={handleSelectTopic}
             />
           ) : section === 'overview' ? (
-            <WelcomeDashboard categories={data.categories} onStartLearning={handleSelectTopic} />
+            <WelcomeDashboard categories={data.categories} onStartLearning={handleSelectTopic} searchProps={searchProps} />
           ) : (
             <>
               <div className="page-heading">
