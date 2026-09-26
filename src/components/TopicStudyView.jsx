@@ -46,6 +46,9 @@ export function TopicStudyView({
   const [examFeedback, setExamFeedback] = useState(null);
   const [guestProgress, setGuestProgress] = useState({});
   const [showChallengeHint, setShowChallengeHint] = useState(false);
+  const [showSmallWinAnswer, setShowSmallWinAnswer] = useState(false);
+  const [smallWinCelebrated, setSmallWinCelebrated] = useState(false);
+  const [showConceptDetails, setShowConceptDetails] = useState(false);
 
   useLayoutEffect(() => {
     window.scrollTo(0, 0);
@@ -89,9 +92,9 @@ export function TopicStudyView({
     if (isCorrect) {
       setExerciseFeedback({
         correct: true,
-        text: isAuthenticated
-          ? 'Correct answer. You unlocked the mastery exam.'
-          : 'Correct answer. You unlocked the mastery exam. Sign in to save your quiz history, track your progress, and continue learning across devices.'
+          text: isAuthenticated
+          ? 'Yes, that’s it! You worked through the idea and got it.'
+          : 'Yes, that’s it! You worked through the idea and got it. Sign in to save your quiz history, track your progress, and continue learning across devices.'
       });
       setGuestProgress((current) => ({ ...current, exercise_complete: true }));
       if (isAuthenticated) onSaveProgress(topic.id, { exercise_complete: true });
@@ -99,7 +102,7 @@ export function TopicStudyView({
         onUpdateStatus(topic.id, 'Currently Learning');
       }
     } else {
-      setExerciseFeedback({ correct: false, text: 'Incorrect. Review the core concepts and try again.' });
+      setExerciseFeedback({ correct: false, text: 'Not quite yet, and that’s okay. Revisit the example, then give it another try.' });
     }
   };
 
@@ -108,9 +111,9 @@ export function TopicStudyView({
     if (isCorrect) {
       setExamFeedback({
         correct: true,
-        text: isAuthenticated
-          ? 'Outstanding. You passed the exam with 100% score and mastered this topic.'
-          : 'Outstanding. You passed the exam with 100% score and mastered this topic. Sign in to save your quiz history, track your progress, and continue learning across devices.'
+          text: isAuthenticated
+          ? 'You did it! You used what you learned to solve a new question.'
+          : 'You did it! You used what you learned to solve a new question. Sign in to save your quiz history, track your progress, and continue learning across devices.'
       });
       setGuestProgress((current) => ({ ...current, exam_complete: true }));
       if (isAuthenticated) {
@@ -118,7 +121,7 @@ export function TopicStudyView({
         onUpdateStatus(topic.id, 'Completed');
       }
     } else {
-      setExamFeedback({ correct: false, text: 'Incorrect. Review the core concepts and try again.' });
+      setExamFeedback({ correct: false, text: 'Not quite yet. There is no penalty for trying again; take a breath and look back at the example.' });
     }
   };
 
@@ -239,6 +242,18 @@ export function TopicStudyView({
 
             {content.overview?.whereUsed && <p className="beginner-where-used"><strong>Where you may see it:</strong> {content.overview.whereUsed}</p>}
 
+            <div className={`beginner-small-win${smallWinCelebrated ? ' complete' : ''}`}>
+              <span className="beginner-small-win-kicker">A SMALL FIRST WIN</span>
+              <h3>Let’s try one easy question</h3>
+              <p>{content.beginnerGuide?.winPrompt || `In your own words, what do you think ${topic.title} helps a program do?`}</p>
+              {!showSmallWinAnswer && !smallWinCelebrated && <button type="button" onClick={() => setShowSmallWinAnswer(true)}>Show me a helpful answer</button>}
+              {showSmallWinAnswer && <div className="beginner-small-win-answer">
+                <p>{content.beginnerGuide?.winAnswer || 'A good start is to explain the idea in one simple sentence. You can refine it as you learn more.'}</p>
+                {!smallWinCelebrated && <button type="button" onClick={() => setSmallWinCelebrated(true)}>I understand this a little better</button>}
+              </div>}
+              {smallWinCelebrated && <p className="beginner-encouragement" role="status">Nice work. You took a moment to think it through, and that is real progress.</p>}
+            </div>
+
             {learningObjectives.length > 0 && (
               <div className="lesson-objectives">
                 <h3>Learning Objectives</h3>
@@ -250,36 +265,31 @@ export function TopicStudyView({
               </div>
             )}
 
-            {/* Core Concepts Breakdown */}
-            {content.coreConcepts && content.coreConcepts.length > 0 && (
-              <div className="concepts-list">
-                {content.coreConcepts.map((concept, idx) => (
-                  <div key={idx} className="concept-card">
-                    <h3 className="concept-card-title">
-                      <span className="concept-num">{idx + 1}</span> {concept.title}
-                    </h3>
-                    {concept.terms && concept.terms.length > 0 && (
-                      <div className="terms-grid">
-                        {concept.terms.map((t, tIdx) => (
-                          <div key={tIdx} className="term-pill-card">
+            {((content.coreConcepts && content.coreConcepts.length > 0) || content.diagramType) && (
+              <div className="beginner-more-detail">
+                <button type="button" onClick={() => setShowConceptDetails((open) => !open)} aria-expanded={showConceptDetails}>
+                  {showConceptDetails ? 'Hide extra detail' : 'Want to explore a little more? (Optional)'}
+                </button>
+                {showConceptDetails && <div>
+                  {content.coreConcepts && content.coreConcepts.length > 0 && <div className="concepts-list">
+                    {content.coreConcepts.map((concept, idx) => (
+                      <div key={idx} className="concept-card">
+                        <h3 className="concept-card-title"><span className="concept-num">{idx + 1}</span> {concept.title}</h3>
+                        {concept.terms && concept.terms.length > 0 && <div className="terms-grid">
+                          {concept.terms.map((t, tIdx) => <div key={tIdx} className="term-pill-card">
                             <code className="term-name">{t.term}</code>
                             <span className="term-def">{t.definition}</span>
-                          </div>
-                        ))}
+                          </div>)}
+                        </div>}
+                        <p className="concept-explanation">{concept.explanation}</p>
                       </div>
-                    )}
-
-                    <p className="concept-explanation">{concept.explanation}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Visual Concept Diagram */}
-            {content.diagramType && (
-              <div className="mt-8 pt-6 border-t border-slate-200">
-                <h4 className="text-lg font-bold text-slate-900 mb-3">Visual Concept Blueprint</h4>
-                <TopicDiagram diagramType={content.diagramType} title={topic.title} />
+                    ))}
+                  </div>}
+                  {content.diagramType && <div className="mt-8 pt-6 border-t border-slate-200">
+                    <h4 className="text-lg font-bold text-slate-900 mb-3">A picture of the idea</h4>
+                    <TopicDiagram diagramType={content.diagramType} title={topic.title} />
+                  </div>}
+                </div>}
               </div>
             )}
           </div>
@@ -341,8 +351,8 @@ export function TopicStudyView({
             SECTION 3: ADVANCED DETAILS (Progressive Disclosure - Expandable Accordions)
         ========================================================================= */}
         <div className="drawer-accordion-container">
-          <h3 className="text-xl font-bold text-slate-900 mb-2">Deep Dive & Detailed Reference</h3>
-          <p className="text-slate-600 text-base mb-4">Expand any drawer below for syntax breakdowns, best practices, pitfalls, and project blueprints.</p>
+          <h3 className="text-xl font-bold text-slate-900 mb-2">Optional: Explore More</h3>
+          <p className="text-slate-600 text-base mb-4">You can stop after the example and quick check. When you feel ready, open any section for extra detail or a bigger challenge.</p>
 
           {/* Drawer 1: Syntax Breakdown */}
           {content.syntaxStructure && (
@@ -582,8 +592,8 @@ export function TopicStudyView({
         <section id="sec-quiz" className="study-card">
           <div className="study-card-header">
             <div>
-              <h2 className="study-card-title">Knowledge Check Quiz</h2>
-              <p className="study-card-sub">Verify core understanding to unlock the mastery certification exam</p>
+              <h2 className="study-card-title">Quick Check</h2>
+              <p className="study-card-sub">Choose your best guess. You can review the lesson and try again any time.</p>
             </div>
             {exerciseComplete && <span className="study-done-badge">Quiz Passed</span>}
           </div>
@@ -613,11 +623,11 @@ export function TopicStudyView({
                 onClick={checkExercise}
                 className="btn-primary"
               >
-                Verify Answer
+                Check My Answer
               </button>
               {!lessonComplete && (
                 <button onClick={handleMarkLesson} className="btn-secondary">
-                  Mark Core Concept Read
+                  I’m Ready to Continue
                 </button>
               )}
             </div>
@@ -634,11 +644,11 @@ export function TopicStudyView({
         <section id="sec-exam" className={`study-card ${!exerciseComplete ? 'opacity-70' : ''}`}>
           <div className="study-card-header">
             <div>
-              <h2 className="study-card-title">Mastery Certification Exam</h2>
+              <h2 className="study-card-title">Stretch Challenge</h2>
               <p className="study-card-sub">
                 {exerciseComplete
-                  ? 'Final evaluation to complete this milestone 100%'
-                  : 'Pass the Knowledge Check Quiz above to unlock this exam'}
+                  ? 'An extra challenge if you want to practise a little more.'
+                  : 'Try the Quick Check above first. You can come back to this challenge when you feel ready.'}
               </p>
             </div>
             {examComplete ? (

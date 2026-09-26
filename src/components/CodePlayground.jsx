@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createHighlighter } from 'shiki';
+import { executeRemoteCode, getRuntimeDefinition } from '../lib/playgroundRuntimes.js';
 
 let globalHighlighter = null;
 const getShiki = async () => {
@@ -17,17 +18,6 @@ const escapeHtml = (value) => value
   .replaceAll('<', '&lt;')
   .replaceAll('>', '&gt;')
   .replaceAll('"', '&quot;');
-
-function formatOutput(value) {
-  if (typeof value === 'string') return value;
-  if (typeof value === 'undefined') return 'undefined';
-  try {
-    const formatted = JSON.stringify(value, null, 2);
-    return typeof formatted === 'string' ? formatted : String(value);
-  } catch {
-    return String(value);
-  }
-}
 
 export function StaticCodeBlock({ code, language = 'javascript' }) {
   const [html, setHtml] = useState('');
@@ -65,6 +55,7 @@ export function CodePlayground({
   );
   const [highlightedCode, setHighlightedCode] = useState('');
   const [output, setOutput] = useState(null);
+  const [isRunning, setIsRunning] = useState(false);
   const editorRef = useRef(null);
   const highlightRef = useRef(null);
 
@@ -103,7 +94,7 @@ export function CodePlayground({
     highlightRef.current.scrollLeft = event.currentTarget.scrollLeft;
   };
 
-  const runCode = () => {
+  const runCode = async () => {
     setOutput(null);
     if (currentLang === 'html') {
       setOutput({
@@ -121,42 +112,21 @@ export function CodePlayground({
       return;
     }
 
-    // This editor has an in-browser JavaScript runtime only. Never pass another
-    // language's source to JavaScript's Function constructor: valid code then
-    // appears to have syntax errors caused by the platform.
-    if (currentLang !== 'javascript' && currentLang !== 'python') {
-      setOutput({
-        kind: 'error',
-        value: `${language} execution is not configured for this playground. The source was not run as JavaScript.`
-      });
+    // Run programming-language source only through the isolated Judge0 runtime.
+    // No language is evaluated through browser JavaScript.
+    if (!getRuntimeDefinition(currentLang)) {
+      setOutput({ kind: 'error', value: 'Execution for this language is not currently supported.' });
       return;
     }
 
-    const lines = [];
-    const capture = (...args) => lines.push(args.map(formatOutput).join(' '));
-    const programConsole = {
-      log: capture,
-      info: capture,
-      warn: capture,
-      error: capture,
-      debug: capture,
-      clear: () => {}
-    };
-
+    setIsRunning(true);
     try {
-      // `print` is provided for the common introductory Python example. This
-      // prevents an unresolved print(...) call from reaching window.print().
-      // General Python syntax still needs a Python runtime and is not evaluated
-      // by this JavaScript sandbox.
-      new Function('console', 'print', code)(programConsole, capture);
-      setOutput({ kind: 'text', value: lines.join('\n') });
+      const result = await executeRemoteCode(currentLang, code);
+      setOutput({ kind: 'execution', ...result });
     } catch (error) {
-      setOutput({
-        kind: 'error',
-        value: currentLang === 'python'
-          ? [...lines, `Python runtime is not configured. This playground can run simple print(...) examples, but not general Python syntax. ${error.name}: ${error.message}`].join('\n')
-          : [...lines, `${error.name}: ${error.message}`].join('\n')
-      });
+      setOutput({ kind: 'error', value: error.message || 'Code execution failed.' });
+    } finally {
+      setIsRunning(false);
     }
   };
 
@@ -165,11 +135,11 @@ export function CodePlayground({
       <section className="pg-beginner-card" aria-label={`${title} playground`}>
         <header className="pg-header-bar">
           <span className="pg-title-label">{title}</span>
-          <button type="button" onClick={runCode} className="pg-btn-run">
+          <button type="button" onClick={runCode} className="pg-btn-run" disabled={isRunning}>
             <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
               <polygon points="5 3 19 12 5 21 5 3" />
             </svg>
-            Run
+            {isRunning ? 'Running…' : 'Run'}
           </button>
         </header>
 
@@ -222,6 +192,14 @@ export function CodePlayground({
                 srcDoc={output.value}
                 sandbox="allow-scripts"
               />
+            ) : output.kind === 'execution' ? (
+              <div className="pg-execution-result">
+                {output.compileError && <pre className="pg-output-text pg-output-error">{`Compiler error:\n${output.compileError}`}</pre>}
+                {output.runtimeError && <pre className="pg-output-text pg-output-error">{`Runtime error:\n${output.runtimeError}`}</pre>}
+                {output.stdout && <pre className="pg-output-text">{`Program output:\n${output.stdout}`}</pre>}
+                {output.stderr && !output.compileError && !output.runtimeError && <pre className="pg-output-text pg-output-error">{`Error output:\n${output.stderr}`}</pre>}
+                {!output.compileError && !output.runtimeError && !output.stdout && !output.stderr && <pre className="pg-output-text">Program finished with no output.</pre>}
+              </div>
             ) : (
               <pre className={`pg-output-text${output.kind === 'error' ? ' pg-output-error' : ''}`}>
                 {output.value}
