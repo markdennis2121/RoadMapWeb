@@ -69,9 +69,19 @@ export function CodePlayground({
   const highlightRef = useRef(null);
 
   const currentLang = useMemo(() => {
-    if (type === 'html' || language === 'html') return 'html';
-    if (type === 'css' || language === 'css') return 'css';
-    return 'javascript';
+    const normalized = String(language || type || 'javascript').trim().toLowerCase();
+    if (normalized === 'html' || type === 'html') return 'html';
+    if (normalized === 'css' || type === 'css') return 'css';
+    if (['js', 'javascript', 'node', 'node.js'].includes(normalized)) return 'javascript';
+    if (['py', 'python', 'python3'].includes(normalized)) return 'python';
+    if (['c#', 'csharp', 'cs'].includes(normalized)) return 'csharp';
+    if (['c++', 'cpp'].includes(normalized)) return 'cpp';
+    if (normalized === 'c') return 'c';
+    if (normalized === 'java') return 'java';
+    if (normalized === 'go' || normalized === 'golang') return 'go';
+    if (normalized === 'php') return 'php';
+    if (normalized === 'ruby' || normalized === 'rb') return 'ruby';
+    return normalized;
   }, [type, language]);
 
   useEffect(() => {
@@ -94,6 +104,7 @@ export function CodePlayground({
   };
 
   const runCode = () => {
+    setOutput(null);
     if (currentLang === 'html') {
       setOutput({
         kind: 'preview',
@@ -110,6 +121,17 @@ export function CodePlayground({
       return;
     }
 
+    // This editor has an in-browser JavaScript runtime only. Never pass another
+    // language's source to JavaScript's Function constructor: valid code then
+    // appears to have syntax errors caused by the platform.
+    if (currentLang !== 'javascript' && currentLang !== 'python') {
+      setOutput({
+        kind: 'error',
+        value: `${language} execution is not configured for this playground. The source was not run as JavaScript.`
+      });
+      return;
+    }
+
     const lines = [];
     const capture = (...args) => lines.push(args.map(formatOutput).join(' '));
     const programConsole = {
@@ -122,12 +144,18 @@ export function CodePlayground({
     };
 
     try {
-      new Function('console', code)(programConsole);
+      // `print` is provided for the common introductory Python example. This
+      // prevents an unresolved print(...) call from reaching window.print().
+      // General Python syntax still needs a Python runtime and is not evaluated
+      // by this JavaScript sandbox.
+      new Function('console', 'print', code)(programConsole, capture);
       setOutput({ kind: 'text', value: lines.join('\n') });
     } catch (error) {
       setOutput({
         kind: 'error',
-        value: [...lines, `${error.name}: ${error.message}`].join('\n')
+        value: currentLang === 'python'
+          ? [...lines, `Python runtime is not configured. This playground can run simple print(...) examples, but not general Python syntax. ${error.name}: ${error.message}`].join('\n')
+          : [...lines, `${error.name}: ${error.message}`].join('\n')
       });
     }
   };

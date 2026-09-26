@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useLayoutEffect } from 'react';
 import { getLearningContent } from '../../js/learning.js';
 import { CodePlayground, StaticCodeBlock } from './CodePlayground.jsx';
 import { TopicDiagram } from './TopicDiagram.jsx';
@@ -7,6 +7,7 @@ export function TopicStudyView({
   topic,
   category,
   progress = {},
+  isAuthenticated = true,
   allTopics = [],
   onSaveProgress,
   onUpdateStatus,
@@ -14,11 +15,22 @@ export function TopicStudyView({
   onSelectTopic
 }) {
   const content = useMemo(() => getLearningContent(topic.id, topic.title), [topic.id, topic.title]);
+  const learningObjectives = content.learningObjectives?.length
+    ? content.learningObjectives
+    : content.summary?.skillsAcquired?.length
+      ? content.summary.skillsAcquired
+      : content.coreConcepts?.slice(0, 3).map((concept) => `Explain ${concept.title.toLowerCase()}`) || [];
   const [exerciseAnswer, setExerciseAnswer] = useState('');
   const [examAnswer, setExamAnswer] = useState('');
   const [exerciseFeedback, setExerciseFeedback] = useState(null);
   const [examFeedback, setExamFeedback] = useState(null);
+  const [guestProgress, setGuestProgress] = useState({});
   const [showChallengeHint, setShowChallengeHint] = useState(false);
+
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+    document.querySelector('.workspace-content')?.scrollTo(0, 0);
+  }, [topic.id]);
 
   // Progressive Disclosure: State for expandable advanced drawers
   const [expandedDrawers, setExpandedDrawers] = useState({
@@ -33,9 +45,9 @@ export function TopicStudyView({
     setExpandedDrawers((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const lessonComplete = progress?.lesson_complete || false;
-  const exerciseComplete = progress?.exercise_complete || false;
-  const examComplete = progress?.exam_complete || false;
+  const lessonComplete = progress?.lesson_complete || guestProgress.lesson_complete || false;
+  const exerciseComplete = progress?.exercise_complete || guestProgress.exercise_complete || false;
+  const examComplete = progress?.exam_complete || guestProgress.exam_complete || false;
 
   // Navigation indices
   const currentIndex = allTopics.findIndex((t) => t.id === topic.id);
@@ -55,9 +67,15 @@ export function TopicStudyView({
   const checkExercise = () => {
     const isCorrect = exerciseAnswer === content.exercise.answer;
     if (isCorrect) {
-      setExerciseFeedback({ correct: true, text: 'Correct answer. You unlocked the mastery exam.' });
-      onSaveProgress(topic.id, { exercise_complete: true });
-      if (topic.status === 'Not Started') {
+      setExerciseFeedback({
+        correct: true,
+        text: isAuthenticated
+          ? 'Correct answer. You unlocked the mastery exam.'
+          : 'Correct answer. You unlocked the mastery exam. Sign in to save your quiz history, track your progress, and continue learning across devices.'
+      });
+      setGuestProgress((current) => ({ ...current, exercise_complete: true }));
+      if (isAuthenticated) onSaveProgress(topic.id, { exercise_complete: true });
+      if (isAuthenticated && topic.status === 'Not Started') {
         onUpdateStatus(topic.id, 'Currently Learning');
       }
     } else {
@@ -68,9 +86,17 @@ export function TopicStudyView({
   const checkExam = () => {
     const isCorrect = examAnswer === content.exam.answer;
     if (isCorrect) {
-      setExamFeedback({ correct: true, text: 'Outstanding. You passed the exam with 100% score and mastered this topic.' });
-      onSaveProgress(topic.id, { exam_complete: true, exam_score: 100 });
-      onUpdateStatus(topic.id, 'Completed');
+      setExamFeedback({
+        correct: true,
+        text: isAuthenticated
+          ? 'Outstanding. You passed the exam with 100% score and mastered this topic.'
+          : 'Outstanding. You passed the exam with 100% score and mastered this topic. Sign in to save your quiz history, track your progress, and continue learning across devices.'
+      });
+      setGuestProgress((current) => ({ ...current, exam_complete: true }));
+      if (isAuthenticated) {
+        onSaveProgress(topic.id, { exam_complete: true, exam_score: 100 });
+        onUpdateStatus(topic.id, 'Completed');
+      }
     } else {
       setExamFeedback({ correct: false, text: 'Incorrect. Review the core concepts and try again.' });
     }
@@ -85,7 +111,7 @@ export function TopicStudyView({
             Dashboard
           </button>
           <span className="breadcrumb-sep">/</span>
-          <span className="breadcrumb-cat">{category?.name || 'Roadmap'}</span>
+          <span className="breadcrumb-cat">{category?.name || 'Curriculum'}</span>
           <span className="breadcrumb-sep">/</span>
           <span className="breadcrumb-curr">{topic.title}</span>
         </div>
@@ -190,6 +216,17 @@ export function TopicStudyView({
                 </p>
               </div>
             </div>
+
+            {learningObjectives.length > 0 && (
+              <div className="lesson-objectives">
+                <h3>Learning Objectives</h3>
+                <ul>
+                  {learningObjectives.map((objective, index) => (
+                    <li key={index}><span aria-hidden="true">✓</span>{objective}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Core Concepts Breakdown */}
             {content.coreConcepts && content.coreConcepts.length > 0 && (

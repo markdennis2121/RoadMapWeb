@@ -1,16 +1,17 @@
 import { useState } from 'react';
 import { getLearningContent } from '../../js/learning.js';
 
-export function LearningModal({ topic, progress, onClose, onSave }) {
+export function LearningModal({ topic, progress, onClose, onSave, isAuthenticated = true }) {
   const content = getLearningContent(topic.id, topic.title);
   const [exerciseAnswer, setExerciseAnswer] = useState('');
   const [examAnswer, setExamAnswer] = useState('');
   const [exerciseFeedback, setExerciseFeedback] = useState(null); // { correct: boolean, text: string }
   const [examFeedback, setExamFeedback] = useState(null); // { correct: boolean, text: string }
+  const [guestProgress, setGuestProgress] = useState({});
 
   const lessonComplete = progress?.lesson_complete || false;
-  const exerciseComplete = progress?.exercise_complete || false;
-  const examComplete = progress?.exam_complete || false;
+  const exerciseComplete = progress?.exercise_complete || guestProgress.exercise_complete || false;
+  const examComplete = progress?.exam_complete || guestProgress.exam_complete || false;
 
   const saveLesson = () => {
     onSave({ lesson_complete: true });
@@ -19,8 +20,14 @@ export function LearningModal({ topic, progress, onClose, onSave }) {
   const checkExercise = () => {
     const isCorrect = exerciseAnswer === content.exercise.answer;
     if (isCorrect) {
-      setExerciseFeedback({ correct: true, text: 'Great job! That is correct. Exam unlocked!' });
-      onSave({ exercise_complete: true });
+      setExerciseFeedback({
+        correct: true,
+        text: isAuthenticated
+          ? 'Great job! That is correct. Exam unlocked!'
+          : 'Great job! That is correct. Exam unlocked! Sign in to save your quiz history, track your progress, and continue learning across devices.'
+      });
+      setGuestProgress((current) => ({ ...current, exercise_complete: true }));
+      if (isAuthenticated) onSave({ exercise_complete: true });
     } else {
       setExerciseFeedback({ correct: false, text: 'Not quite. Review the lesson points and try again!' });
     }
@@ -29,8 +36,14 @@ export function LearningModal({ topic, progress, onClose, onSave }) {
   const checkExam = () => {
     const isCorrect = examAnswer === content.exam.answer;
     if (isCorrect) {
-      setExamFeedback({ correct: true, text: 'Outstanding! You passed the exam and mastered this topic.' });
-      onSave({ exam_complete: true, exam_score: 100 });
+      setExamFeedback({
+        correct: true,
+        text: isAuthenticated
+          ? 'Outstanding! You passed the exam and mastered this topic.'
+          : 'Outstanding! You passed the exam and mastered this topic. Sign in to save your quiz history, track your progress, and continue learning across devices.'
+      });
+      setGuestProgress((current) => ({ ...current, exam_complete: true }));
+      if (isAuthenticated) onSave({ exam_complete: true, exam_score: 100 });
     } else {
       setExamFeedback({ correct: false, text: 'That answer is incorrect. Review the lesson and give it another shot.' });
     }

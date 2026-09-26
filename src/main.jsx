@@ -12,7 +12,7 @@ function LegalPage({ type }) {
     <main className="min-h-screen bg-[#f5f7fb] px-5 py-12 text-slate-800">
       <article className="mx-auto max-w-3xl rounded-2xl border border-slate-200 bg-white p-8 shadow-xl">
         <a href="/" className="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-700">
-          ← Back to Roadmap Tracker
+          ← Back to CodeForge
         </a>
         <h1 className="mt-6 font-['Space_Grotesk'] text-3xl font-bold text-slate-900">
           {privacy ? 'Privacy Policy' : 'Terms and Conditions'}
@@ -23,21 +23,21 @@ function LegalPage({ type }) {
             <section>
               <h2 className="text-lg font-bold text-slate-900">Information we collect</h2>
               <p className="mt-2">
-                Roadmap Tracker collects your email and authentication details. Social sign-in may provide your name,
+                CodeForge collects your email and authentication details. Social sign-in may provide your name,
                 email, and profile image.
               </p>
             </section>
             <section>
               <h2 className="text-lg font-bold text-slate-900">How we use information</h2>
               <p className="mt-2">
-                We use this information to authenticate you, save your personal roadmap, provide account recovery, and
+                We use this information to authenticate you, save your personal learning plan, provide account recovery, and
                 improve the application.
               </p>
             </section>
             <section>
               <h2 className="text-lg font-bold text-slate-900">Storage and security</h2>
               <p className="mt-2">
-                Account and roadmap data are stored with Supabase. Row-level security restricts roadmap access to its
+                Account and learning plan data are stored with Supabase. Row-level security restricts access to each user's
                 owner. Passwords are handled by Supabase Authentication.
               </p>
             </section>
@@ -51,10 +51,10 @@ function LegalPage({ type }) {
         ) : (
           <div className="mt-8 space-y-6 text-slate-600 leading-relaxed">
             <section>
-              <h2 className="text-lg font-bold text-slate-900">Using Roadmap Tracker</h2>
+              <h2 className="text-lg font-bold text-slate-900">Using CodeForge</h2>
               <p className="mt-2">
-                Roadmap Tracker helps you organize personal learning goals. You are responsible for your account
-                credentials and roadmap content.
+                CodeForge helps you organize personal learning goals. You are responsible for your account
+                credentials and saved learning content.
               </p>
             </section>
             <section>
@@ -128,10 +128,8 @@ function AuthScreen({ initialMessage = '' }) {
     <main className="flex min-h-screen items-center justify-center bg-[#f5f7fb] px-5 py-10 text-slate-800">
       <section className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-2xl shadow-slate-200/50">
         <div className="mb-8 text-center flex flex-col items-center">
-          <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 text-3xl font-extrabold tracking-tighter text-white shadow-[0_8px_16px_rgba(79,70,229,0.25)]">
-            R
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Roadmap Workspace</h1>
+          <img src="/logo.png" alt="CodeForge" className="mb-5 h-16 w-16 rounded-2xl object-contain" />
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">CodeForge</h1>
           <p className="mt-2 text-sm font-medium text-slate-500">Log in to continue your learning journey.</p>
         </div>
 
@@ -436,9 +434,9 @@ function ProfileModal({ session, onClose }) {
   );
 }
 
-function App({ session }) {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+function App({ session, onRequestAuth }) {
+  const [data, setData] = useState(session ? null : structuredClone(DEFAULT_DATA));
+  const [loading, setLoading] = useState(Boolean(session));
   const [learningProgress, setLearningProgress] = useState({});
   const [message, setMessage] = useState('');
   const [filter, setFilter] = useState('all');
@@ -449,6 +447,7 @@ function App({ session }) {
   const [categoryId, setCategoryId] = useState('');
 
   useEffect(() => {
+    if (!session) return undefined;
     let active = true;
     setLoading(true);
     Promise.all([
@@ -474,11 +473,20 @@ function App({ session }) {
     return () => {
       active = false;
     };
-  }, [session.user.id]);
+  }, [session?.user?.id]);
+
+  const requireAccount = () => {
+    if (!session) {
+      onRequestAuth();
+      return false;
+    }
+    return true;
+  };
 
   const refresh = async () => setData(await loadRoadmap(session.user.id));
 
   const saveLearningProgress = async (itemKey, changes) => {
+    if (!session) return;
     const { data: saved, error } = await supabase
       .from('learning_progress')
       .upsert(
@@ -499,6 +507,7 @@ function App({ session }) {
   };
 
   const update = async (id, status, completedDate = null) => {
+    if (!requireAccount()) return;
     const { error } = await supabase
       .from('roadmap_items')
       .update({ status, completed_date: completedDate })
@@ -538,12 +547,16 @@ function App({ session }) {
       <InAppLearningModal
         topic={topic}
         progress={learningProgress[topic.id]}
+        isAuthenticated={Boolean(session)}
         onClose={() => {
           root.unmount();
           container.remove();
           setModal(null);
         }}
-        onSave={(changes) => saveLearningProgress(topic.id, changes)}
+        onSave={(changes) => {
+          if (changes.lesson_complete && !session) requireAccount();
+          else saveLearningProgress(topic.id, changes);
+        }}
       />
     );
     return () => {
@@ -557,7 +570,7 @@ function App({ session }) {
       <div className="flex min-h-screen items-center justify-center bg-[#f5f7fb] px-5 text-indigo-600">
         <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-lg">
           <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-indigo-100 border-t-indigo-600" />
-          <p className="font-semibold text-slate-800">Loading your roadmap...</p>
+          <p className="font-semibold text-slate-800">Loading your learning plan...</p>
           <p className="mt-1 text-xs text-slate-500">Connecting to your learning progress</p>
         </div>
       </div>
@@ -567,7 +580,7 @@ function App({ session }) {
   if (!data) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#f5f7fb] px-5 text-center text-rose-600 font-semibold">
-        {message || 'Unable to load your roadmap.'}
+        {message || 'Unable to load your learning plan.'}
       </div>
     );
   }
@@ -597,6 +610,7 @@ function App({ session }) {
 
   const addItem = async (event) => {
     event.preventDefault();
+    if (!requireAccount()) return;
     if (!newTitle.trim()) return;
     const category = data.categories.find((entry) => entry.id === categoryId);
     const row = {
@@ -618,12 +632,14 @@ function App({ session }) {
   };
 
   const reset = async () => {
+    if (!requireAccount()) return;
     await supabase.from('roadmap_items').delete().eq('user_id', session.user.id);
     await refresh();
     setModal(null);
   };
 
   const openProfile = () => {
+    if (!requireAccount()) return;
     const container = document.createElement('div');
     document.body.appendChild(container);
     const root = createRoot(container);
@@ -639,8 +655,10 @@ function App({ session }) {
   };
 
   return (
-    <DashboardShell
+      <DashboardShell
       session={session}
+      onRequestAuth={onRequestAuth}
+      isAuthenticated={Boolean(session)}
       data={data}
       stats={stats}
       learningProgress={learningProgress}
@@ -671,6 +689,7 @@ function App({ session }) {
 function Root() {
   const [session, setSession] = useState(undefined);
   const [authError, setAuthError] = useState('');
+  const [showAuth, setShowAuth] = useState(false);
 
   useEffect(() => {
     const callbackError = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('error_description');
@@ -695,7 +714,12 @@ function Root() {
         Loading...
       </div>
     );
-  return session ? <App session={session} /> : <AuthScreen initialMessage={authError} />;
+  const requestAuth = () => {
+    setAuthError('Create a free account to save your progress and continue your learning journey across devices.');
+    setShowAuth(true);
+  };
+  if (session) return <App session={session} onRequestAuth={requestAuth} />;
+  return showAuth ? <AuthScreen initialMessage={authError} /> : <App session={null} onRequestAuth={requestAuth} />;
 }
 
 createRoot(document.getElementById('root')).render(<Root />);

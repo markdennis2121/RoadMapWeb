@@ -35,8 +35,107 @@ function Check({ checked, onChange, label }) {
   );
 }
 
+function WelcomeDashboard({ categories, onStartLearning }) {
+  const featuredLanguages = [
+    ['js', 'JavaScript'],
+    ['python', 'Python'],
+    ['java', 'Java'],
+    ['csharp', 'C#'],
+    ['cpp', 'C++'],
+    ['go', 'Go'],
+    ['php', 'PHP']
+  ];
+  const offers = [
+    ['✦', 'Interactive lessons'],
+    ['✓', 'Practice quizzes'],
+    ['⌘', 'Coding playground'],
+    ['↗', 'Real projects'],
+    ['◎', 'Progress tracking'],
+    ['↗', 'Beginner to advanced paths']
+  ];
+
+  const startCategory = (category) => {
+    const firstTopic = category?.topics[0];
+    if (firstTopic) {
+      onStartLearning({ ...firstTopic, categoryId: category.id, categoryName: category.name });
+    }
+  };
+
+  return (
+    <div className="welcome-dashboard">
+      <section className="welcome-hero">
+        <span className="welcome-kicker">A FRIENDLY PLACE TO START</span>
+        <h1>Learn programming, one step at a time.</h1>
+        <p>Learn through interactive lessons, hands-on practice, and real projects. CodeForge is designed to help you build skills step by step, at your own pace.</p>
+        <button className="welcome-primary-button" onClick={() => document.getElementById('welcome-languages')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+          Start Learning <span aria-hidden="true">→</span>
+        </button>
+        <div className="welcome-hero-decoration" aria-hidden="true">{'{ }'}</div>
+      </section>
+
+      <section id="welcome-languages" className="welcome-languages">
+        <div className="welcome-section-heading">
+          <div>
+            <span className="welcome-kicker">BEGIN WHERE YOU ARE</span>
+            <h2>Choose a language</h2>
+          </div>
+          <p>Curious about coding? Pick a path that interests you. You can explore everything else as you go.</p>
+        </div>
+        <div className="welcome-language-grid">
+          {featuredLanguages.map(([id, label]) => {
+            const category = categories.find((entry) => entry.id === id);
+            if (!category) return null;
+            const icon = getCategoryDeviconMeta(category.id);
+            return (
+              <article className="welcome-language-card" key={id}>
+                <div className="welcome-language-card-top">
+                  <span className="welcome-language-icon" style={{ backgroundColor: icon.bgColor }}>
+                    <img src={icon.iconUrl} alt="" />
+                  </span>
+                  <span className="welcome-language-units">{category.topics.length} lessons</span>
+                </div>
+                <h3>{label}</h3>
+                <p>Beginner to Advanced</p>
+                <button onClick={() => startCategory(category)}>
+                  Start Learning <span aria-hidden="true">→</span>
+                </button>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="welcome-offers">
+        <div className="welcome-section-heading">
+          <div>
+            <span className="welcome-kicker">MADE FOR LEARNING BY DOING</span>
+            <h2>Everything you need to keep going</h2>
+          </div>
+        </div>
+        <div className="welcome-offer-grid">
+          {offers.map(([icon, title]) => (
+            <div className="welcome-offer-item" key={title}>
+              <span aria-hidden="true">{icon}</span>{title}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="welcome-bottom-cta">
+        <h2>Your first line of code is closer than you think.</h2>
+        <p>Choose a language and start your journey.</p>
+        <button className="welcome-primary-button" onClick={() => document.getElementById('welcome-languages')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+          Explore Languages <span aria-hidden="true">→</span>
+        </button>
+      </section>
+    </div>
+  );
+}
+
 export function DashboardShell({
   session,
+  onRequestAuth,
+  isAuthenticated,
   data,
   stats,
   learningProgress,
@@ -109,8 +208,8 @@ export function DashboardShell({
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [searchSelectedIndex, setSearchSelectedIndex] = useState(0);
 
-  const metadata = session.user.user_metadata || {};
-  const displayName = metadata.full_name || metadata.name || session.user.email?.split('@')[0] || 'Learner';
+  const metadata = session?.user?.user_metadata || {};
+  const displayName = metadata.full_name || metadata.name || session?.user?.email?.split('@')[0] || 'Learner';
   const avatar = metadata.avatar_url || metadata.picture;
 
   // Flatten all topics for sequential navigation
@@ -254,7 +353,7 @@ export function DashboardShell({
               {topicIcon && <img src={topicIcon.iconUrl} alt="" className="topic-devicon" />}
               <span>
                 <strong>{topic.title}</strong>
-                <small>{topicProgress(topic)}% learning path</small>
+                {session && <small>{topicProgress(topic)}% learning path</small>}
               </span>
             </button>
             <StatusSelect item={topic} onChange={(status) => update(topic.id, status)} />
@@ -284,10 +383,10 @@ export function DashboardShell({
       >
         <div className="sidebar-top">
           <div className="brand-lockup">
-            <div className="brand-mark">R</div>
+            <img className="brand-mark" style={{ objectFit: 'contain' }} src="/logo.png" alt="" />
             <div>
-              <strong>Roadmap</strong>
-              <span>Learning workspace</span>
+              <strong>CodeForge</strong>
+              
             </div>
           </div>
           {mobileSidebarOpen && (
@@ -315,21 +414,6 @@ export function DashboardShell({
           />
         </div>
 
-        {/* Bottom Momentum Note & Footer */}
-        <div className="sidebar-bottom">
-          <div className="sidebar-note">
-            <span className="eyebrow">Your momentum</span>
-            <strong>{stats.progress}% complete</strong>
-            <div className="mini-progress">
-              <span style={{ width: `${stats.progress}%` }} />
-            </div>
-            <p>Small steps compound into real skills.</p>
-          </div>
-          <div className="sidebar-footer">
-            <a href="/privacy">Privacy</a>
-            <a href="/terms">Terms</a>
-          </div>
-        </div>
       </aside>
 
       {/* Resize Handle */}
@@ -356,8 +440,8 @@ export function DashboardShell({
           </button>
 
           <div className="mobile-brand">
-            <div className="brand-mark">R</div>
-            <strong>Roadmap</strong>
+            <img className="brand-mark" style={{ objectFit: 'contain' }} src="/logo.png" alt="" />
+            <strong>CodeForge</strong>
           </div>
 
           <div className="header-search" style={{ position: 'relative' }}>
@@ -369,7 +453,7 @@ export function DashboardShell({
               onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
               onKeyDown={handleSearchKeyDown}
               placeholder="Search lessons, quizzes, examples..."
-              aria-label="Search roadmap"
+              aria-label="Search lessons"
             />
             {isSearchFocused && searchQuery.length >= 2 && (
               <div className="search-dropdown" style={{
@@ -410,16 +494,18 @@ export function DashboardShell({
             {/* Profile Dropdown */}
             <div className="profile-dropdown-wrapper" ref={el => profileRef.current = el}>
               <button
-                onClick={() => setProfileOpen(o => !o)}
+                onClick={() => session ? setProfileOpen(o => !o) : onRequestAuth()}
                 className="profile-trigger"
                 aria-label="Open profile menu"
                 aria-expanded={profileOpen}
               >
-                <span className="avatar">
-                  {avatar ? <img src={avatar} alt="" /> : displayName[0].toUpperCase()}
-                </span>
-                <span className="profile-name">{displayName}</span>
-                <svg
+                {session ? <>
+                  <span className="avatar">
+                    {avatar ? <img src={avatar} alt="" /> : displayName[0].toUpperCase()}
+                  </span>
+                  <span className="profile-name">{displayName}</span>
+                </> : <span className="profile-name">Sign in</span>}
+                {session && <svg
                   className="profile-chevron"
                   width="14" height="14" viewBox="0 0 24 24"
                   fill="none" stroke="currentColor" strokeWidth="2.5"
@@ -427,10 +513,10 @@ export function DashboardShell({
                   style={{ transform: profileOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }}
                 >
                   <polyline points="6 9 12 15 18 9" />
-                </svg>
+                </svg>}
               </button>
 
-              {profileOpen && (
+              {profileOpen && session && (
                 <div className="profile-dropdown-menu">
                   <div className="profile-dropdown-header">
                     <span className="avatar" style={{ width: 36, height: 36, fontSize: 15 }}>
@@ -465,28 +551,32 @@ export function DashboardShell({
           {/* When a topic is active, render TopicStudyView directly in the main dashboard! */}
           {activeTopic ? (
             <TopicStudyView
+              key={activeTopic.id}
               topic={activeTopic}
               category={activeCategory}
               progress={learningProgress[activeTopic.id]}
+              isAuthenticated={isAuthenticated}
               allTopics={allTopics}
               onSaveProgress={saveLearningProgress}
               onUpdateStatus={(id, status) => update(id, status)}
               onBackToOverview={handleBackToOverview}
               onSelectTopic={handleSelectTopic}
             />
+          ) : section === 'overview' ? (
+            <WelcomeDashboard categories={data.categories} onStartLearning={handleSelectTopic} />
           ) : (
             <>
               <div className="page-heading">
                 <div>
-                  <p className="eyebrow">{section === 'learning' ? 'Study plan' : 'Personal dashboard'}</p>
+                  <p className="eyebrow">{session ? (section === 'learning' ? 'Study plan' : 'Personal dashboard') : 'CodeForge'}</p>
                   <h1>
                     {section === 'projects'
                       ? 'Project studio'
                       : section === 'roadmap'
-                        ? 'Your roadmap'
+                        ? 'Your learning plan'
                         : section === 'learning'
                           ? 'Learning center'
-                          : `Good to see you, ${displayName.split(' ')[0]}`}
+                          : session ? `Good to see you, ${displayName.split(' ')[0]}` : 'Explore the curriculum'}
                   </h1>
                   <p className="page-subtitle">
                     {section === 'overview'
@@ -523,7 +613,7 @@ export function DashboardShell({
                 <section className="hero-card">
                   <div>
                     <span className="hero-kicker">NEXT UP</span>
-                    <h2>{continueTopic ? continueTopic.title : 'Your roadmap is ready'}</h2>
+                    <h2>{continueTopic ? continueTopic.title : 'Your learning path is ready'}</h2>
                     <p>Continue your learning path with a focused lesson, interactive quiz, and mastery exam.</p>
                     {continueTopic && (
                       <button
@@ -534,15 +624,15 @@ export function DashboardShell({
                       </button>
                     )}
                   </div>
-                  <ProgressRing value={stats.learningProgress} />
+                    {session && <ProgressRing value={stats.learningProgress} />}
                 </section>
               )}
 
-              <section className="metric-grid">
+              {session && <section className="metric-grid">
                 <article className="metric-card">
                   <span className="metric-icon indigo">◎</span>
                   <div>
-                    <span className="metric-label">Roadmap items</span>
+                    <span className="metric-label">Learning items</span>
                     <strong>{stats.total}</strong>
                     <small>{stats.completed} completed</small>
                   </div>
@@ -563,7 +653,7 @@ export function DashboardShell({
                     <small>Lessons & exams</small>
                   </div>
                 </article>
-              </section>
+              </section>}
 
               <section className="toolbar">
                 <div>
@@ -572,7 +662,7 @@ export function DashboardShell({
                       ? 'Projects'
                       : section === 'learning'
                         ? 'Lessons to explore'
-                        : 'Roadmap topics'}
+                        : 'Learning topics'}
                   </h2>
                   <p>
                     {section === 'overview'
@@ -654,8 +744,8 @@ export function DashboardShell({
             <div className="modal-container max-w-md">
               <div className="modal-header">
                 <div>
-                  <span className="modal-kicker">New Roadmap Item</span>
-                  <h2 className="modal-title">Add to Roadmap</h2>
+                  <span className="modal-kicker">New Learning Item</span>
+                  <h2 className="modal-title">Add to Learning Plan</h2>
                 </div>
                 <button onClick={() => setModal(null)} className="modal-close-btn" aria-label="Close">
                   ×
@@ -669,7 +759,7 @@ export function DashboardShell({
                     onChange={(event) => setItemType(event.target.value)}
                     className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-medium outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition"
                   >
-                    <option value="topic">Roadmap topic</option>
+                    <option value="topic">Learning topic</option>
                     <option value="project">Project</option>
                   </select>
                 </label>
@@ -723,7 +813,7 @@ export function DashboardShell({
               <div className="modal-header">
                 <div>
                   <span className="modal-kicker text-rose-600">Danger Zone</span>
-                  <h2 className="modal-title">Reset Your Roadmap?</h2>
+                  <h2 className="modal-title">Reset Your Learning Plan?</h2>
                 </div>
                 <button onClick={() => setModal(null)} className="modal-close-btn" aria-label="Close">
                   ×
@@ -731,7 +821,7 @@ export function DashboardShell({
               </div>
               <div className="modal-body">
                 <p className="text-sm text-slate-600 leading-relaxed">
-                  Your current custom items and learning progress will be cleared and the original starter roadmap will
+                  Your current custom items and learning progress will be cleared and the original starter learning plan will
                   be restored.
                 </p>
               </div>
@@ -740,7 +830,7 @@ export function DashboardShell({
                   Cancel
                 </button>
                 <button onClick={reset} className="btn-danger">
-                  Reset Roadmap
+                  Reset Learning Plan
                 </button>
               </div>
             </div>

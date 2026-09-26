@@ -273,6 +273,43 @@
 /* --------------------------------------------------------------------------
    Core Concept Triad Cards
    -------------------------------------------------------------------------- */
+.lesson-objectives {
+  margin-top: 24px;
+  padding: 18px 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.lesson-objectives h3 {
+  margin: 0 0 12px;
+  color: #1e293b;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.lesson-objectives ul {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lesson-objectives li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.lesson-objectives li span {
+  color: #4f46e5;
+  font-weight: 800;
+}
+
 .overview-triad-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));

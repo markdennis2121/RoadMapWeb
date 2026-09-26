@@ -3,7 +3,6 @@ import { getCategoryDeviconMeta, getTopicDeviconMeta } from '../lib/devicons.js'
 
 export function TopicTree({
   categories = [],
-  projects = [],
   learningProgress = {},
   activeTopicId = null,
   onSelectTopic
@@ -12,32 +11,13 @@ export function TopicTree({
   const [statusFilter, setStatusFilter] = useState('all');
 
   // Expanded folders state
-  const [expandedFolders, setExpandedFolders] = useState(() => {
-    const initial = {};
-    categories.forEach((cat) => {
-      initial[cat.id] = true;
-    });
-    initial['projects'] = true;
-    return initial;
-  });
+  const [expandedFolders, setExpandedFolders] = useState({});
 
   const toggleFolder = (id) => {
     setExpandedFolders((prev) => ({
       ...prev,
       [id]: !prev[id]
     }));
-  };
-
-  const expandAll = () => {
-    const all = { projects: true };
-    categories.forEach((cat) => {
-      all[cat.id] = true;
-    });
-    setExpandedFolders(all);
-  };
-
-  const collapseAll = () => {
-    setExpandedFolders({});
   };
 
   // Process categories and projects
@@ -70,51 +50,10 @@ export function TopicTree({
     });
   }, [categories, treeSearch, statusFilter]);
 
-  const filteredProjects = useMemo(() => {
-    const query = treeSearch.trim().toLowerCase();
-    return projects.filter((proj) => {
-      const matchesQuery = !query || proj.title.toLowerCase().includes(query) || 'projects'.includes(query);
-      const matchesStatus =
-        statusFilter === 'all' ||
-        (statusFilter === 'completed' && proj.status === 'Completed') ||
-        (statusFilter === 'learning' && proj.status === 'Currently Learning') ||
-        (statusFilter === 'not-started' && proj.status === 'Not Started');
-      return matchesQuery && matchesStatus;
-    });
-  }, [projects, treeSearch, statusFilter]);
-
-  const totalTopics = categories.reduce((acc, cat) => acc + cat.topics.length, 0);
-  const totalCompletedTopics = categories.reduce(
-    (acc, cat) => acc + cat.topics.filter((t) => t.status === 'Completed').length,
-    0
-  );
-
   return (
     <div className="nav-tree-container">
       {/* Header & Search Bar */}
       <div className="nav-tree-toolbar">
-        <div className="nav-tree-title-row">
-          <div className="flex items-center gap-2">
-            <span className="nav-tree-heading">LEARNING ROADMAP</span>
-            <span className="nav-tree-pill-counter">
-              {totalCompletedTopics}/{totalTopics} Mastered
-            </span>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <button onClick={expandAll} className="tree-icon-btn" title="Expand All">
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            <button onClick={collapseAll} className="tree-icon-btn" title="Collapse All">
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
         {/* Search Field */}
         <div className="tree-search-bar">
           <svg className="w-4 h-4 text-slate-400 shrink-0" viewBox="0 0 20 20" fill="currentColor">
@@ -189,9 +128,6 @@ export function TopicTree({
                     </div>
                     <div className="sidebar-cat-text">
                       <span className="sidebar-cat-name">{category.name}</span>
-                      <span className="sidebar-cat-count" style={{ color: meta.color }}>
-                        {category.completedInCat}/{category.totalInCat} completed
-                      </span>
                     </div>
                   </div>
 
@@ -216,27 +152,14 @@ export function TopicTree({
                     ) : (
                       category.topics.map((topic) => {
                         const isActive = activeTopicId === topic.id;
-                        const isCompleted = topic.status === 'Completed';
-                        const isLearning = topic.status === 'Currently Learning';
                         const topicMeta = getTopicDeviconMeta(topic.id);
 
                         return (
                           <button
                             key={topic.id}
                             onClick={() => onSelectTopic(topic)}
-                            className={`sidebar-topic-item ${isActive ? 'active' : ''} ${
-                              isCompleted ? 'completed' : isLearning ? 'learning' : ''
-                            }`}
+                            className={`sidebar-topic-item ${isActive ? 'active' : ''}`}
                           >
-                            <span className="sidebar-topic-indicator">
-                              {isCompleted ? (
-                                <span className="topic-check-mark">✓</span>
-                              ) : isLearning ? (
-                                <span className="topic-learning-dot" />
-                              ) : (
-                                <span className="topic-neutral-dot" />
-                              )}
-                            </span>
                             {topicMeta && (
                               <img
                                 src={topicMeta.iconUrl}
@@ -254,64 +177,6 @@ export function TopicTree({
               </div>
             );
           })}
-
-          {/* Practical Projects Group */}
-          {filteredProjects.length > 0 && (
-            <div className="sidebar-cat-group">
-              <button
-                className="sidebar-cat-header"
-                onClick={() => toggleFolder('projects')}
-              >
-                <div className="sidebar-cat-left">
-                  <div className="sidebar-devicon-box" style={{ backgroundColor: 'rgba(139, 92, 246, 0.08)' }}>
-                    <img
-                      src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/vscode/vscode-original.svg"
-                      alt="Projects Studio"
-                      className="sidebar-devicon-img"
-                    />
-                  </div>
-                  <div className="sidebar-cat-text">
-                    <span className="sidebar-cat-name">Practical Projects</span>
-                    <span className="sidebar-cat-count" style={{ color: '#8b5cf6' }}>
-                      {filteredProjects.length} Apps
-                    </span>
-                  </div>
-                </div>
-
-                <svg
-                  className={`sidebar-cat-arrow ${expandedFolders['projects'] ? 'open' : ''}`}
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-
-              {expandedFolders['projects'] && (
-                <div className="sidebar-topic-items">
-                  {filteredProjects.map((project) => (
-                    <div
-                      key={project.id}
-                      className={`sidebar-topic-item ${project.status === 'Completed' ? 'completed' : ''}`}
-                    >
-                      <span className="sidebar-topic-indicator">
-                        {project.status === 'Completed' ? (
-                          <span className="topic-check-mark">✓</span>
-                        ) : (
-                          <span className="topic-neutral-dot" />
-                        )}
-                      </span>
-                      <span className="sidebar-topic-label">{project.title}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </div>
     </div>

@@ -4,6 +4,7 @@ import { JS_CURRICULUM } from './curriculum/jsCurriculum.js';
 import { GIT_CURRICULUM } from './curriculum/gitCurriculum.js';
 import { REACT_CURRICULUM } from './curriculum/reactCurriculum.js';
 import { NODE_CURRICULUM } from './curriculum/nodeCurriculum.js';
+import { getLanguageTrackLesson, getSupplementaryLesson } from './curriculum/languageTrackLessons.js';
 
 // Unified Comprehensive Curriculum Master Dictionary (All 36 Roadmap Topics)
 export const LEARNING_CONTENT = {
@@ -137,6 +138,12 @@ export function getLearningContent(topicId, title = 'Topic') {
   if (LEARNING_CONTENT[topicId]) {
     return normalizeContent(LEARNING_CONTENT[topicId], title);
   }
+
+  const languageTrackLesson = getLanguageTrackLesson(topicId, title);
+  if (languageTrackLesson) return normalizeContent(languageTrackLesson, title);
+
+  const supplementaryLesson = getSupplementaryLesson(topicId);
+  if (supplementaryLesson) return normalizeContent(supplementaryLesson, title);
 
   // Fallback dynamic generator for user-added custom topics
   const area = topicId.split('-')[0];
