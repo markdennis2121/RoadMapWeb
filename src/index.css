@@ -1340,6 +1340,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   gap: 9px;
   max-width: 380px;
   flex: 1;
+  min-width: 0;
   color: #94a3b8;
 }
 
@@ -1361,6 +1362,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   align-items: center;
   gap: 10px;
   margin-left: auto;
+  flex: 0 0 auto;
 }
 
 .primary-action {
@@ -1383,13 +1385,25 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .profile-trigger {
   display: flex;
   align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  min-height: 40px;
   gap: 8px;
-  padding: 4px 0 4px 8px;
+  padding: 4px 8px;
   border: 0;
   color: #475569;
   background: transparent;
   font-size: 12.5px;
   font-weight: 600;
+}
+
+.profile-trigger.guest {
+  padding-inline: 12px;
+  border: 1px solid #e0e7ff;
+  border-radius: 9px;
+  color: #4338ca;
+  background: #eef2ff;
+  white-space: nowrap;
 }
 
 .avatar {
@@ -3425,8 +3439,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
     display: flex;
     flex: 1;
     max-width: none;
+    min-width: 0;
   }
-  .profile-name {
+  .profile-trigger:not(.guest) .profile-name {
     display: none;
   }
   .profile-chevron {
@@ -3463,8 +3478,37 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 
   .workspace-header {
     height: 64px;
-    padding: 0 16px;
-    gap: 12px;
+    padding: 0 clamp(8px, 3vw, 16px);
+    gap: clamp(6px, 2vw, 12px);
+  }
+
+  .header-actions {
+    margin-left: 0;
+  }
+
+  .profile-trigger.guest {
+    min-width: 66px;
+    min-height: 40px;
+    padding-inline: 9px;
+    font-size: 12px;
+  }
+
+  .mobile-brand,
+  .mobile-menu-btn {
+    flex: 0 0 auto;
+  }
+
+  .mobile-brand strong {
+    white-space: nowrap;
+  }
+
+  .profile-dropdown-menu {
+    position: fixed;
+    top: 58px;
+    right: 8px;
+    width: min(260px, calc(100vw - 16px));
+    max-height: calc(100dvh - 72px);
+    overflow-y: auto;
   }
 
   .workspace-content {
@@ -3505,6 +3549,23 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   }
   .study-nav-btn {
     justify-content: space-between;
+  }
+}
+
+@media (max-width: 380px) {
+  .mobile-brand strong {
+    display: none;
+  }
+  .workspace-header {
+    gap: 6px;
+  }
+  .mobile-menu-btn {
+    width: 36px;
+    height: 36px;
+  }
+  .profile-trigger.guest {
+    min-width: 62px;
+    padding-inline: 7px;
   }
 }
 

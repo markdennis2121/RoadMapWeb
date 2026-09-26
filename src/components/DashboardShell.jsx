@@ -495,8 +495,8 @@ export function DashboardShell({
             <div className="profile-dropdown-wrapper" ref={el => profileRef.current = el}>
               <button
                 onClick={() => session ? setProfileOpen(o => !o) : onRequestAuth()}
-                className="profile-trigger"
-                aria-label="Open profile menu"
+                className={`profile-trigger${session ? '' : ' guest'}`}
+                aria-label={session ? 'Open profile menu' : 'Sign in'}
                 aria-expanded={profileOpen}
               >
                 {session ? <>
@@ -532,7 +532,14 @@ export function DashboardShell({
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     Profile
                   </button>
-                  <button className="profile-dropdown-item" onClick={() => setProfileOpen(false)}>
+                  <button className="profile-dropdown-item" onClick={() => {
+                    setProfileOpen(false);
+                    document.getElementById('learning-progress-summary')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                    Progress
+                  </button>
+                  <button className="profile-dropdown-item" onClick={() => { onProfile(); setProfileOpen(false); }}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
                     Settings
                   </button>
@@ -628,7 +635,7 @@ export function DashboardShell({
                 </section>
               )}
 
-              {session && <section className="metric-grid">
+              {session && <section id="learning-progress-summary" className="metric-grid">
                 <article className="metric-card">
                   <span className="metric-icon indigo">◎</span>
                   <div>
